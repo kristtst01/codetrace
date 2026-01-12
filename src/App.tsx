@@ -7,6 +7,7 @@ import { getAlgorithm } from './algorithms';
 function App() {
   const {
     array,
+    size,
     steps,
     currentStep,
     isPlaying,
@@ -17,8 +18,10 @@ function App() {
     stepForward,
     stepBackward,
     setSpeed,
+    setSize,
     handleAlgorithmChange,
     handleReset,
+    handleGenerateArray,
   } = useVisualizationControls();
 
   const currentStepData = steps[currentStep] || { array };
@@ -35,6 +38,7 @@ function App() {
           <Controls
             isPlaying={isPlaying}
             speed={speed}
+            size={size}
             currentStep={currentStep}
             totalSteps={steps.length}
             selectedAlgorithm={selectedAlgorithm}
@@ -42,6 +46,8 @@ function App() {
             onPause={pause}
             onReset={handleReset}
             onSpeedChange={setSpeed}
+            onSizeChange={setSize}
+            onGenerateArray={handleGenerateArray}
             onAlgorithmChange={handleAlgorithmChange}
             onStepForward={stepForward}
             onStepBackward={stepBackward}

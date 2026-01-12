@@ -6,7 +6,7 @@ import { usePlaybackAnimation } from './usePlaybackAnimation';
 export const useVisualizationControls = () => {
   const [speed, setSpeed] = useState(500);
 
-  const { array, generateArray } = useArrayManagement();
+  const { array, size, setSize, generateArray } = useArrayManagement();
   const { selectedAlgorithm, steps, executeAlgorithm } = useAlgorithmExecution(array);
   const { currentStep, isPlaying, play, pause, reset, stepForward, stepBackward, setCurrentStep } =
     usePlaybackAnimation({ totalSteps: steps.length, speed });
@@ -25,6 +25,10 @@ export const useVisualizationControls = () => {
 
   const handleReset = useCallback(() => {
     reset();
+  }, [reset]);
+
+  const handleGenerateArray = useCallback(() => {
+    reset();
     generateArray();
     if (selectedAlgorithm) {
       executeAlgorithm(selectedAlgorithm);
@@ -33,6 +37,7 @@ export const useVisualizationControls = () => {
 
   return {
     array,
+    size,
     steps,
     currentStep,
     isPlaying,
@@ -43,7 +48,9 @@ export const useVisualizationControls = () => {
     stepForward,
     stepBackward,
     setSpeed,
+    setSize,
     handleAlgorithmChange,
     handleReset,
+    handleGenerateArray,
   };
 };

@@ -2,11 +2,14 @@ import { Card, CardContent } from '../ui/card';
 import { AlgorithmSelector } from './AlgorithmSelector';
 import { PlaybackControls } from './PlaybackControls';
 import { SpeedControl } from './SpeedControl';
+import { ArraySizeControl } from './ArraySizeControl';
+import { GenerateArrayButton } from './GenerateArrayButton';
 import { StepCounter } from './StepCounter';
 
 interface ControlsProps {
   isPlaying: boolean;
   speed: number;
+  size: number;
   currentStep: number;
   totalSteps: number;
   selectedAlgorithm: string | null;
@@ -14,6 +17,8 @@ interface ControlsProps {
   onPause: () => void;
   onReset: () => void;
   onSpeedChange: (speed: number) => void;
+  onSizeChange: (size: number) => void;
+  onGenerateArray: () => void;
   onAlgorithmChange: (algorithm: string) => void;
   onStepForward: () => void;
   onStepBackward: () => void;
@@ -22,6 +27,7 @@ interface ControlsProps {
 export const Controls = ({
   isPlaying,
   speed,
+  size,
   currentStep,
   totalSteps,
   selectedAlgorithm,
@@ -29,6 +35,8 @@ export const Controls = ({
   onPause,
   onReset,
   onSpeedChange,
+  onSizeChange,
+  onGenerateArray,
   onAlgorithmChange,
   onStepForward,
   onStepBackward,
@@ -40,6 +48,10 @@ export const Controls = ({
           selectedAlgorithm={selectedAlgorithm}
           onAlgorithmChange={onAlgorithmChange}
         />
+
+        <ArraySizeControl size={size} onSizeChange={onSizeChange} />
+
+        <GenerateArrayButton onGenerate={onGenerateArray} />
 
         <PlaybackControls
           isPlaying={isPlaying}
