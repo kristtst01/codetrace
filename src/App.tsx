@@ -4,6 +4,8 @@ import { Controls } from './components/Controls';
 import { getAlgorithm } from './algorithms';
 import type { AlgorithmStep } from './types';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
+import { Button } from './components/ui/button';
+import { Code } from 'lucide-react';
 
 function App() {
   const [array, setArray] = useState<number[]>([]);
@@ -12,6 +14,7 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(500);
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<string | null>(null);
+  const [showCode, setShowCode] = useState(false);
   const intervalRef = useRef<number | null>(null);
 
   // Generate random array on mount
@@ -114,8 +117,16 @@ function App() {
             {/* Algorithm Info */}
             {algorithm && (
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                   <CardTitle>{algorithm.name}</CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCode(!showCode)}
+                  >
+                    <Code className="mr-2 h-4 w-4" />
+                    {showCode ? 'Hide Code' : 'View Code'}
+                  </Button>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <p className="text-sm text-muted-foreground">{algorithm.description}</p>
@@ -129,6 +140,18 @@ function App() {
                       <span className="text-muted-foreground">{algorithm.spaceComplexity}</span>
                     </div>
                   </div>
+
+                  {/* Code Display */}
+                  {showCode && (
+                    <div className="mt-4">
+                      <div className="bg-muted p-4 rounded-md overflow-x-auto">
+                        <pre className="text-sm">
+                          <code>{algorithm.code}</code>
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+
                   {currentStepData.message && (
                     <div className="mt-4 p-3 bg-secondary rounded-md">
                       <p className="text-sm font-mono">{currentStepData.message}</p>

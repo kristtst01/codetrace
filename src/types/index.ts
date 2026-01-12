@@ -12,6 +12,7 @@ export interface Algorithm {
   description: string;
   timeComplexity: string;
   spaceComplexity: string;
+  code: string;
   generate: (input: number[]) => AlgorithmStep[];
 }
 
