@@ -6,7 +6,7 @@ interface GridVisualizerProps {
   step: AlgorithmStep;
   width?: number;
   height?: number;
-  onCellClick?: (row: number, col: number) => void;
+  onCellClick?: (row: number, col: number, isWall: boolean) => void;
   onStartDrag?: (row: number, col: number) => void;
   onEndDrag?: (row: number, col: number) => void;
 }

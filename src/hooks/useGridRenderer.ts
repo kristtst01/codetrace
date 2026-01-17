@@ -3,11 +3,11 @@ import type { AlgorithmStep } from '../types';
 import { getCellColor } from '../utils/colorUtils';
 
 interface UseGridRendererProps {
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
   step: AlgorithmStep;
   width: number;
   height: number;
-  onCellClick?: (row: number, col: number) => void;
+  onCellClick?: (row: number, col: number, isWall: boolean) => void;
   onStartDrag?: (row: number, col: number) => void;
   onEndDrag?: (row: number, col: number) => void;
 }
@@ -25,10 +25,16 @@ export const useGridRenderer = ({
     isDragging: boolean;
     isDrawingWalls: boolean;
     dragType: 'start' | 'end' | null;
+    drawMode: 'add' | 'remove' | null;
+    lastRow: number | null;
+    lastCol: number | null;
   }>({
     isDragging: false,
     isDrawingWalls: false,
     dragType: null,
+    drawMode: null,
+    lastRow: null,
+    lastCol: null,
   });
 
   useEffect(() => {
@@ -98,8 +104,13 @@ export const useGridRenderer = ({
         dragStateRef.current.isDragging = true;
         dragStateRef.current.dragType = 'end';
       } else {
+        // Determine drawing mode based on first cell clicked
+        const isCurrentlyWall = cell.type === 'wall';
         dragStateRef.current.isDrawingWalls = true;
-        onCellClick?.(row, col);
+        dragStateRef.current.drawMode = isCurrentlyWall ? 'remove' : 'add';
+        dragStateRef.current.lastRow = row;
+        dragStateRef.current.lastCol = col;
+        onCellClick?.(row, col, !isCurrentlyWall);
       }
     };
 
@@ -115,7 +126,14 @@ export const useGridRenderer = ({
           onEndDrag?.(row, col);
         }
       } else if (dragStateRef.current.isDrawingWalls) {
-        onCellClick?.(row, col);
+        // Only modify wall if we moved to a different cell
+        if (row !== dragStateRef.current.lastRow || col !== dragStateRef.current.lastCol) {
+          dragStateRef.current.lastRow = row;
+          dragStateRef.current.lastCol = col;
+          // Apply the draw mode consistently throughout the drag
+          const shouldBeWall = dragStateRef.current.drawMode === 'add';
+          onCellClick?.(row, col, shouldBeWall);
+        }
       }
     };
 
@@ -123,6 +141,9 @@ export const useGridRenderer = ({
       dragStateRef.current.isDragging = false;
       dragStateRef.current.isDrawingWalls = false;
       dragStateRef.current.dragType = null;
+      dragStateRef.current.drawMode = null;
+      dragStateRef.current.lastRow = null;
+      dragStateRef.current.lastCol = null;
     };
 
     canvas.addEventListener('mousedown', handleMouseDown);

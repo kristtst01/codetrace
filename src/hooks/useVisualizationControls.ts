@@ -100,6 +100,7 @@ export const useVisualizationControls = () => {
     setRows: gridManagement.setRows,
     setCols: gridManagement.setCols,
     toggleWall: gridManagement.toggleWall,
+    setWall: gridManagement.setWall,
     setStart: gridManagement.setStart,
     setEnd: gridManagement.setEnd,
     handleAlgorithmChange,

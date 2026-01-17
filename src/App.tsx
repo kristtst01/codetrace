@@ -37,7 +37,7 @@ function App() {
               <>
                 <GridVisualizer
                   step={currentStepData}
-                  onCellClick={controls.toggleWall}
+                  onCellClick={controls.setWall}
                   onStartDrag={controls.setStart}
                   onEndDrag={controls.setEnd}
                 />

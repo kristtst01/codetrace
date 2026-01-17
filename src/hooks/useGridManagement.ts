@@ -58,6 +58,24 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
     });
   }, [gridData]);
 
+  const setWall = useCallback((row: number, col: number, isWall: boolean) => {
+    if (!gridData) return;
+
+    const cell = gridData.cells[row][col];
+    if (cell.type === 'start' || cell.type === 'end') return;
+
+    const newCells = gridData.cells.map((rowArray) =>
+      rowArray.map((c) => ({ ...c }))
+    );
+
+    newCells[row][col].type = isWall ? 'wall' : 'empty';
+
+    setGridData({
+      ...gridData,
+      cells: newCells,
+    });
+  }, [gridData]);
+
   const setStart = useCallback((row: number, col: number) => {
     if (!gridData) return;
 
@@ -129,6 +147,7 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
     setGridData,
     generateEmptyGrid,
     toggleWall,
+    setWall,
     setStart,
     setEnd,
     clearWalls,
