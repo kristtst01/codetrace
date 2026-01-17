@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export const useArrayManagement = (initialSize: number = 20) => {
   const [array, setArray] = useState<number[]>([]);
@@ -13,6 +13,10 @@ export const useArrayManagement = (initialSize: number = 20) => {
     }
     return newArray;
   }, [size]);
+
+  useEffect(() => {
+    generateArray();
+  }, [generateArray]);
 
   return {
     array,

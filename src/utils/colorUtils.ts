@@ -1,8 +1,20 @@
+import type { Cell } from '../types';
+
 export const VISUALIZER_COLORS = {
   default: '#3b82f6',    // Blue - default state
   comparing: '#eab308',  // Yellow - being compared
   swapping: '#ef4444',   // Red - being swapped
   sorted: '#22c55e',     // Green - sorted
+} as const;
+
+export const GRID_COLORS = {
+  empty: '#ffffff',      // White - empty cell
+  wall: '#1e293b',       // Dark slate - wall
+  start: '#22c55e',      // Green - start point
+  end: '#ef4444',        // Red - end point
+  visited: '#bfdbfe',    // Light blue - visited
+  exploring: '#fbbf24',  // Yellow - currently exploring
+  path: '#3b82f6',       // Blue - final path
 } as const;
 
 export const getBarColor = (
@@ -21,4 +33,25 @@ export const getBarColor = (
     return VISUALIZER_COLORS.comparing;
   }
   return VISUALIZER_COLORS.default;
+};
+
+export const getCellColor = (
+  cell: Cell,
+  visited: [number, number][] = [],
+  exploring: [number, number][] = [],
+  path: [number, number][] = []
+): string => {
+  const coord = [cell.row, cell.col];
+
+  if (path.some(p => p[0] === coord[0] && p[1] === coord[1])) {
+    return GRID_COLORS.path;
+  }
+  if (exploring.some(e => e[0] === coord[0] && e[1] === coord[1])) {
+    return GRID_COLORS.exploring;
+  }
+  if (visited.some(v => v[0] === coord[0] && v[1] === coord[1])) {
+    return GRID_COLORS.visited;
+  }
+
+  return GRID_COLORS[cell.type];
 };

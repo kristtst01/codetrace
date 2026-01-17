@@ -1,56 +1,111 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import type { AlgorithmMode } from '../types';
 import { useArrayManagement } from './useArrayManagement';
+import { useGridManagement } from './useGridManagement';
 import { useAlgorithmExecution } from './useAlgorithmExecution';
 import { usePlaybackAnimation } from './usePlaybackAnimation';
+import {
+  generateRecursiveDivision,
+  generateRandomizedPrims,
+  generateRandomWalls,
+} from '../utils/mazeGeneration';
 
 export const useVisualizationControls = () => {
+  const [mode, setMode] = useState<AlgorithmMode>('sorting');
   const [speed, setSpeed] = useState(500);
 
-  const { array, size, setSize, generateArray } = useArrayManagement();
-  const { selectedAlgorithm, steps, executeAlgorithm } = useAlgorithmExecution(array);
-  const { currentStep, isPlaying, play, pause, reset, stepForward, stepBackward, setCurrentStep } =
-    usePlaybackAnimation({ totalSteps: steps.length, speed });
+  const arrayManagement = useArrayManagement();
+  const gridManagement = useGridManagement();
 
-  useEffect(() => {
-    generateArray();
-  }, [generateArray]);
+  const sortingExecution = useAlgorithmExecution(arrayManagement.array);
+  const pathfindingExecution = useAlgorithmExecution(gridManagement.gridData);
+
+  const steps = mode === 'sorting' ? sortingExecution.steps : pathfindingExecution.steps;
+  const selectedAlgorithm = mode === 'sorting' ? sortingExecution.selectedAlgorithm : pathfindingExecution.selectedAlgorithm;
+  const executeAlgorithm = mode === 'sorting' ? sortingExecution.executeAlgorithm : pathfindingExecution.executeAlgorithm;
+
+  const playback = usePlaybackAnimation({ totalSteps: steps.length, speed });
+
+  const handleModeChange = useCallback((newMode: AlgorithmMode) => {
+    setMode(newMode);
+    playback.reset();
+  }, [playback]);
 
   const handleAlgorithmChange = useCallback(
     (algorithmKey: string) => {
       executeAlgorithm(algorithmKey);
-      setCurrentStep(0);
+      playback.setCurrentStep(0);
     },
-    [executeAlgorithm, setCurrentStep]
+    [executeAlgorithm, playback]
   );
 
   const handleReset = useCallback(() => {
-    reset();
-  }, [reset]);
+    playback.reset();
+  }, [playback]);
 
   const handleGenerateArray = useCallback(() => {
-    reset();
-    generateArray();
+    playback.reset();
+    arrayManagement.generateArray();
     if (selectedAlgorithm) {
-      executeAlgorithm(selectedAlgorithm);
+      sortingExecution.executeAlgorithm(selectedAlgorithm);
     }
-  }, [reset, generateArray, selectedAlgorithm, executeAlgorithm]);
+  }, [playback, arrayManagement, selectedAlgorithm, sortingExecution]);
+
+  const handleGenerateMaze = useCallback((type: string) => {
+    playback.reset();
+    let newGridData;
+
+    if (type === 'recursive-division') {
+      newGridData = generateRecursiveDivision(gridManagement.rows, gridManagement.cols);
+    } else if (type === 'randomized-prims') {
+      newGridData = generateRandomizedPrims(gridManagement.rows, gridManagement.cols);
+    } else {
+      newGridData = generateRandomWalls(gridManagement.rows, gridManagement.cols, 0.3);
+    }
+
+    gridManagement.setGridData(newGridData);
+
+    if (selectedAlgorithm) {
+      pathfindingExecution.executeAlgorithm(selectedAlgorithm);
+    }
+  }, [playback, gridManagement, selectedAlgorithm, pathfindingExecution]);
+
+  const handleClearWalls = useCallback(() => {
+    playback.reset();
+    gridManagement.clearWalls();
+    if (selectedAlgorithm) {
+      pathfindingExecution.executeAlgorithm(selectedAlgorithm);
+    }
+  }, [playback, gridManagement, selectedAlgorithm, pathfindingExecution]);
 
   return {
-    array,
-    size,
+    mode,
+    setMode: handleModeChange,
+    array: arrayManagement.array,
+    size: arrayManagement.size,
+    gridData: gridManagement.gridData,
+    rows: gridManagement.rows,
+    cols: gridManagement.cols,
     steps,
-    currentStep,
-    isPlaying,
+    currentStep: playback.currentStep,
+    isPlaying: playback.isPlaying,
     speed,
     selectedAlgorithm,
-    play,
-    pause,
-    stepForward,
-    stepBackward,
+    play: playback.play,
+    pause: playback.pause,
+    stepForward: playback.stepForward,
+    stepBackward: playback.stepBackward,
     setSpeed,
-    setSize,
+    setSize: arrayManagement.setSize,
+    setRows: gridManagement.setRows,
+    setCols: gridManagement.setCols,
+    toggleWall: gridManagement.toggleWall,
+    setStart: gridManagement.setStart,
+    setEnd: gridManagement.setEnd,
     handleAlgorithmChange,
     handleReset,
     handleGenerateArray,
+    handleGenerateMaze,
+    handleClearWalls,
   };
 };

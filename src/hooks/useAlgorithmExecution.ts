@@ -1,31 +1,42 @@
 import { useState, useCallback, useEffect } from 'react';
 import { getAlgorithm } from '../algorithms';
-import type { AlgorithmStep } from '../types';
+import type { AlgorithmStep, GridData } from '../types';
 
-export const useAlgorithmExecution = (array: number[]) => {
+export const useAlgorithmExecution = (input: number[] | GridData | null) => {
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<string | null>(null);
-  const [steps, setSteps] = useState<AlgorithmStep[]>([{ array }]);
+  const [steps, setSteps] = useState<AlgorithmStep[]>([
+    Array.isArray(input) ? { array: input } : { array: [], grid: input || undefined }
+  ]);
 
   useEffect(() => {
-    setSteps([{ array }]);
-  }, [array]);
+    if (Array.isArray(input)) {
+      setSteps([{ array: input }]);
+    } else if (input) {
+      setSteps([{ array: [], grid: input }]);
+    }
+  }, [input]);
 
   const executeAlgorithm = useCallback((algorithmKey: string) => {
     setSelectedAlgorithm(algorithmKey);
     const algorithm = getAlgorithm(algorithmKey);
-    if (algorithm) {
-      const newSteps = algorithm.generate(array);
+    if (algorithm && input) {
+      const newSteps = algorithm.generate(input);
       setSteps(newSteps);
     }
-  }, [array]);
+  }, [input]);
 
   const resetSteps = useCallback(() => {
-    setSteps([{ array }]);
-  }, [array]);
+    if (Array.isArray(input)) {
+      setSteps([{ array: input }]);
+    } else if (input) {
+      setSteps([{ array: [], grid: input }]);
+    }
+  }, [input]);
 
   return {
     selectedAlgorithm,
     steps,
+    setSteps,
     executeAlgorithm,
     resetSteps,
   };
