@@ -78,6 +78,21 @@ export const useVisualizationControls = () => {
     }
   }, [playback, gridManagement, selectedAlgorithm, pathfindingExecution]);
 
+  const handleRowsChange = useCallback((newRows: number) => {
+    playback.reset();
+    gridManagement.setRows(newRows);
+  }, [playback, gridManagement]);
+
+  const handleColsChange = useCallback((newCols: number) => {
+    playback.reset();
+    gridManagement.setCols(newCols);
+  }, [playback, gridManagement]);
+
+  const handleSizeChange = useCallback((newSize: number) => {
+    playback.reset();
+    arrayManagement.setSize(newSize);
+  }, [playback, arrayManagement]);
+
   return {
     mode,
     setMode: handleModeChange,
@@ -96,9 +111,9 @@ export const useVisualizationControls = () => {
     stepForward: playback.stepForward,
     stepBackward: playback.stepBackward,
     setSpeed,
-    setSize: arrayManagement.setSize,
-    setRows: gridManagement.setRows,
-    setCols: gridManagement.setCols,
+    setSize: handleSizeChange,
+    setRows: handleRowsChange,
+    setCols: handleColsChange,
     toggleWall: gridManagement.toggleWall,
     setWall: gridManagement.setWall,
     setStart: gridManagement.setStart,
