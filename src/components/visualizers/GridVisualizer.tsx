@@ -37,7 +37,7 @@ export const GridVisualizer = ({
         ref={canvasRef}
         width={width}
         height={height}
-        className="rounded cursor-pointer"
+        className="rounded cursor-pointer max-w-full max-h-[600px] w-auto h-auto"
       />
     </div>
   );

@@ -14,7 +14,16 @@ export const useAlgorithmExecution = (input: number[] | GridData | null) => {
     } else if (input) {
       setSteps([{ array: [], grid: input }]);
     }
-  }, [input]);
+
+    // Re-execute the selected algorithm when input changes
+    if (selectedAlgorithm && input) {
+      const algorithm = getAlgorithm(selectedAlgorithm);
+      if (algorithm) {
+        const newSteps = algorithm.generate(input);
+        setSteps(newSteps);
+      }
+    }
+  }, [input, selectedAlgorithm]);
 
   const executeAlgorithm = useCallback((algorithmKey: string) => {
     setSelectedAlgorithm(algorithmKey);

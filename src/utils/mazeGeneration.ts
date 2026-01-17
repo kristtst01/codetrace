@@ -15,6 +15,46 @@ function createEmptyGrid(rows: number, cols: number): Cell[][] {
   return cells;
 }
 
+// BFS to check if there's a path from start to end
+function hasPath(cells: Cell[][], start: { row: number; col: number }, end: { row: number; col: number }): boolean {
+  const rows = cells.length;
+  const cols = cells[0].length;
+  const visited = new Set<string>();
+  const queue: { row: number; col: number }[] = [start];
+  visited.add(`${start.row},${start.col}`);
+
+  const directions = [
+    [-1, 0], [1, 0], [0, -1], [0, 1],
+    [-1, -1], [-1, 1], [1, -1], [1, 1]
+  ];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+
+    if (current.row === end.row && current.col === end.col) {
+      return true;
+    }
+
+    for (const [dr, dc] of directions) {
+      const newRow = current.row + dr;
+      const newCol = current.col + dc;
+      const key = `${newRow},${newCol}`;
+
+      if (
+        newRow >= 0 && newRow < rows &&
+        newCol >= 0 && newCol < cols &&
+        !visited.has(key) &&
+        cells[newRow][newCol].type !== 'wall'
+      ) {
+        visited.add(key);
+        queue.push({ row: newRow, col: newCol });
+      }
+    }
+  }
+
+  return false;
+}
+
 function setStartEnd(cells: Cell[][], rows: number, cols: number): { start: { row: number; col: number }; end: { row: number; col: number } } {
   const startRow = Math.floor(rows / 2);
   const startCol = Math.floor(cols / 4);
@@ -34,20 +74,30 @@ export function generateRecursiveDivision(rows: number, cols: number): GridData 
   const cells = createEmptyGrid(rows, cols);
   const positions = setStartEnd(cells, rows, cols);
 
+  // Minimum chamber size - stops dividing when chamber is smaller than this
+  const MIN_CHAMBER_SIZE = 5;
+
   function divide(rowStart: number, rowEnd: number, colStart: number, colEnd: number) {
     const height = rowEnd - rowStart;
     const width = colEnd - colStart;
 
-    if (height <= 1 || width <= 1) return;
+    // Stop dividing if chamber is too small
+    if (height < MIN_CHAMBER_SIZE || width < MIN_CHAMBER_SIZE) return;
 
     const horizontal = height > width;
 
     if (horizontal) {
       const wallRow = rowStart + Math.floor(Math.random() * (height - 1)) + 1;
-      const gapCol = colStart + Math.floor(Math.random() * width);
+
+      // Create multiple gaps for better connectivity (20-40% of the wall)
+      const numGaps = Math.max(1, Math.floor(width * (0.2 + Math.random() * 0.2)));
+      const gapPositions = new Set<number>();
+      for (let i = 0; i < numGaps; i++) {
+        gapPositions.add(colStart + Math.floor(Math.random() * width));
+      }
 
       for (let col = colStart; col < colEnd; col++) {
-        if (col !== gapCol && cells[wallRow][col].type === 'empty') {
+        if (!gapPositions.has(col) && cells[wallRow][col].type === 'empty') {
           cells[wallRow][col].type = 'wall';
         }
       }
@@ -56,10 +106,16 @@ export function generateRecursiveDivision(rows: number, cols: number): GridData 
       divide(wallRow, rowEnd, colStart, colEnd);
     } else {
       const wallCol = colStart + Math.floor(Math.random() * (width - 1)) + 1;
-      const gapRow = rowStart + Math.floor(Math.random() * height);
+
+      // Create multiple gaps for better connectivity (20-40% of the wall)
+      const numGaps = Math.max(1, Math.floor(height * (0.2 + Math.random() * 0.2)));
+      const gapPositions = new Set<number>();
+      for (let i = 0; i < numGaps; i++) {
+        gapPositions.add(rowStart + Math.floor(Math.random() * height));
+      }
 
       for (let row = rowStart; row < rowEnd; row++) {
-        if (row !== gapRow && cells[row][wallCol].type === 'empty') {
+        if (!gapPositions.has(row) && cells[row][wallCol].type === 'empty') {
           cells[row][wallCol].type = 'wall';
         }
       }
@@ -70,6 +126,27 @@ export function generateRecursiveDivision(rows: number, cols: number): GridData 
   }
 
   divide(0, rows, 0, cols);
+
+  // Verify maze is solvable, if not add gaps until it is
+  let attempts = 0;
+  while (!hasPath(cells, positions.start, positions.end) && attempts < 100) {
+    // Remove random walls to create paths
+    const wallCells: { row: number; col: number }[] = [];
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        if (cells[row][col].type === 'wall') {
+          wallCells.push({ row, col });
+        }
+      }
+    }
+
+    if (wallCells.length > 0) {
+      const randomWall = wallCells[Math.floor(Math.random() * wallCells.length)];
+      cells[randomWall.row][randomWall.col].type = 'empty';
+    }
+
+    attempts++;
+  }
 
   return {
     rows,
@@ -164,17 +241,38 @@ export function generateRandomizedPrims(rows: number, cols: number): GridData {
 export function generateRandomWalls(
   rows: number,
   cols: number,
-  wallDensity: number = 0.3
+  wallDensity: number = 0.25
 ): GridData {
   const cells = createEmptyGrid(rows, cols);
   const positions = setStartEnd(cells, rows, cols);
 
+  // Randomly place walls
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       if (cells[row][col].type === 'empty' && Math.random() < wallDensity) {
         cells[row][col].type = 'wall';
       }
     }
+  }
+
+  // Ensure maze is solvable - remove walls until path exists
+  let attempts = 0;
+  while (!hasPath(cells, positions.start, positions.end) && attempts < 100) {
+    const wallCells: { row: number; col: number }[] = [];
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        if (cells[row][col].type === 'wall') {
+          wallCells.push({ row, col });
+        }
+      }
+    }
+
+    if (wallCells.length > 0) {
+      const randomWall = wallCells[Math.floor(Math.random() * wallCells.length)];
+      cells[randomWall.row][randomWall.col].type = 'empty';
+    }
+
+    attempts++;
   }
 
   return {
