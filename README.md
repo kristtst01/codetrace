@@ -81,11 +81,9 @@ pnpm run dev
 
 ### UI/UX
 - **Complete UI redesign needed**: Current layout is poorly optimized for desktop - page is excessively long requiring constant scrolling between controls and visualization. Needs horizontal layout restructuring.
+- **Grid canvas overflow**: Canvas doesn't scale to fit container on smaller screens, causing overflow.
 
 ### Pathfinding
-- **Wall drawing**: Click-and-drag repeatedly toggles the same cell when moving slowly, making it unreliable. Only works when moving mouse quickly across different cells.
-- **Recursive Division maze generation**: Adds far too many walls, creating mazes that are almost always unsolvable. Algorithm needs tuning to create fewer walls and ensure paths exist.
-- **Random Walls maze generation**: Currently just randomly places walls, doesn't create actual maze-like structures with guaranteed solvability. Needs pathfinding check and better distribution.
 - **Grid size changes**: Changing grid dimensions while an algorithm is running may cause issues. Reset before changing size.
 - **Large grids performance**: Grids larger than 40x80 may have slower step generation for Dijkstra and A*.
 
