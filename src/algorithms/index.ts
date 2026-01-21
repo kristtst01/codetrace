@@ -24,7 +24,3 @@ export const algorithms: Record<string, Algorithm> = {
 export const getAlgorithm = (name: string): Algorithm | undefined => {
   return algorithms[name];
 };
-
-export const getAlgorithmsByCategory = (category: string): Algorithm[] => {
-  return Object.values(algorithms).filter((algo) => algo.category === category);
-};

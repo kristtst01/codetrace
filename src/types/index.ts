@@ -45,14 +45,4 @@ export interface Algorithm {
   generate: (input: any) => AlgorithmStep[];
 }
 
-export type AlgorithmCategory = 'sorting' | 'pathfinding' | 'graph';
-
 export type AlgorithmMode = 'sorting' | 'pathfinding';
-
-export interface VisualizationState {
-  array: number[];
-  currentStep: number;
-  isPlaying: boolean;
-  speed: number;
-  algorithm: string | null;
-}
