@@ -26,6 +26,13 @@ export interface AlgorithmStep {
   exploring?: [number, number][];
   path?: [number, number][];
   message?: string;
+  stats?: {
+    comparisons?: number;
+    swaps?: number;
+    nodesVisited?: number;
+    pathLength?: number;
+    executionTime?: number;
+  };
 }
 
 export interface Algorithm {

@@ -1,4 +1,5 @@
 import type { Algorithm, AlgorithmStep, GridData, Cell } from '../types';
+import { benchmarkAlgorithm } from '../utils/benchmark';
 
 function cellKey(cell: Cell): string {
   return `${cell.row},${cell.col}`;
@@ -91,16 +92,55 @@ export const dijkstra: Algorithm = {
 }`,
   generate: (input: any): AlgorithmStep[] => {
     const gridData = input as GridData;
-    const steps: AlgorithmStep[] = [];
     const { cells, start: startPos, end: endPos } = gridData;
-
     const startCell = cells[startPos.row][startPos.col];
     const endCell = cells[endPos.row][endPos.col];
+
+    // Benchmark the algorithm to get accurate execution time
+    const avgExecutionTime = benchmarkAlgorithm(() => {
+      const distances = new Map<string, number>();
+      const unvisited: Cell[] = [];
+      distances.set(cellKey(startCell), 0);
+      unvisited.push(startCell);
+
+      while (unvisited.length > 0) {
+        let minDistance = Infinity;
+        let minIndex = 0;
+        for (let i = 0; i < unvisited.length; i++) {
+          const dist = distances.get(cellKey(unvisited[i])) || Infinity;
+          if (dist < minDistance) {
+            minDistance = dist;
+            minIndex = i;
+          }
+        }
+
+        const current = unvisited[minIndex];
+        unvisited.splice(minIndex, 1);
+
+        if (cellKey(current) === cellKey(endCell)) break;
+
+        const neighbors = getNeighbors(current, cells);
+        for (const neighbor of neighbors) {
+          if (neighbor.type === 'wall') continue;
+          const alt = (distances.get(cellKey(current)) || 0) + getCost(current, neighbor);
+          const currentDist = distances.get(cellKey(neighbor)) || Infinity;
+          if (alt < currentDist) {
+            distances.set(cellKey(neighbor), alt);
+            if (!unvisited.find(c => cellKey(c) === cellKey(neighbor))) {
+              unvisited.push(neighbor);
+            }
+          }
+        }
+      }
+    });
+
+    const steps: AlgorithmStep[] = [];
 
     steps.push({
       array: [],
       grid: gridData,
       message: 'Starting Dijkstra\'s Algorithm',
+      stats: { nodesVisited: 0, pathLength: 0, executionTime: 0 }
     });
 
     const distances = new Map<string, number>();
@@ -134,7 +174,20 @@ export const dijkstra: Algorithm = {
           visited: visitedCells,
           path: finalPath,
           message: `Path found! Length: ${finalPath.length}`,
+          stats: {
+            nodesVisited: visitedCells.length,
+            pathLength: finalPath.length,
+            executionTime: avgExecutionTime
+          }
         });
+
+        // Distribute execution time evenly across all steps
+        const timePerStep = avgExecutionTime / (steps.length - 1);
+        for (let i = 1; i < steps.length; i++) {
+          if (steps[i].stats) {
+            steps[i].stats!.executionTime = timePerStep * i;
+          }
+        }
         break;
       }
 
@@ -167,6 +220,11 @@ export const dijkstra: Algorithm = {
         visited: [...visitedCells],
         exploring: exploringCells,
         message: `Exploring from (${current.row}, ${current.col}), distance: ${(distances.get(cellKey(current)) || 0).toFixed(2)}`,
+        stats: {
+          nodesVisited: visitedCells.length,
+          pathLength: 0,
+          executionTime: 0
+        }
       });
     }
 
@@ -176,7 +234,20 @@ export const dijkstra: Algorithm = {
         grid: gridData,
         visited: visitedCells,
         message: 'No path found',
+        stats: {
+          nodesVisited: visitedCells.length,
+          pathLength: 0,
+          executionTime: avgExecutionTime
+        }
       });
+
+      // Distribute execution time evenly across all steps
+      const timePerStep = avgExecutionTime / (steps.length - 1);
+      for (let i = 1; i < steps.length; i++) {
+        if (steps[i].stats) {
+          steps[i].stats!.executionTime = timePerStep * i;
+        }
+      }
     }
 
     return steps;

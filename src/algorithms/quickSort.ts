@@ -1,4 +1,5 @@
 import type { Algorithm, AlgorithmStep } from '../types';
+import { benchmarkAlgorithm } from '../utils/benchmark';
 
 export const quickSort: Algorithm = {
   name: 'Quick Sort',
@@ -30,11 +31,39 @@ function partition(arr, low, high) {
   return i + 1;
 }`,
   generate: (input: number[]): AlgorithmStep[] => {
+    // Benchmark the algorithm to get accurate execution time
+    const avgExecutionTime = benchmarkAlgorithm(() => {
+      const benchArr = [...input];
+      const quickSort = (arr: number[], low: number, high: number) => {
+        if (low < high) {
+          const pivot = arr[high];
+          let i = low - 1;
+          for (let j = low; j < high; j++) {
+            if (arr[j] < pivot) {
+              i++;
+              [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+          }
+          [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+          const pi = i + 1;
+          quickSort(arr, low, pi - 1);
+          quickSort(arr, pi + 1, high);
+        }
+      };
+      quickSort(benchArr, 0, benchArr.length - 1);
+    });
+
     const steps: AlgorithmStep[] = [];
     const arr = [...input];
     const n = arr.length;
+    let comparisons = 0;
+    let swaps = 0;
 
-    steps.push({ array: [...arr], message: 'Starting Quick Sort' });
+    steps.push({
+      array: [...arr],
+      message: 'Starting Quick Sort',
+      stats: { comparisons, swaps, executionTime: 0 }
+    });
 
     const partition = (low: number, high: number): number => {
       const pivot = arr[high];
@@ -42,33 +71,40 @@ function partition(arr, low, high) {
         array: [...arr],
         comparing: [high],
         message: `Pivot: ${pivot}`,
+        stats: { comparisons, swaps, executionTime: 0 }
       });
 
       let i = low - 1;
 
       for (let j = low; j < high; j++) {
+        comparisons++;
         steps.push({
           array: [...arr],
           comparing: [j, high],
           message: `Comparing ${arr[j]} with pivot ${pivot}`,
+          stats: { comparisons, swaps, executionTime: 0 }
         });
 
         if (arr[j] < pivot) {
           i++;
+          swaps++;
           [arr[i], arr[j]] = [arr[j], arr[i]];
           steps.push({
             array: [...arr],
             swapping: [i, j],
             message: `Swapping ${arr[j]} and ${arr[i]}`,
+            stats: { comparisons, swaps, executionTime: 0 }
           });
         }
       }
 
+      swaps++;
       [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
       steps.push({
         array: [...arr],
         swapping: [i + 1, high],
         message: `Placing pivot ${pivot} at position ${i + 1}`,
+        stats: { comparisons, swaps, executionTime: 0 }
       });
 
       return i + 1;
@@ -88,7 +124,16 @@ function partition(arr, low, high) {
       array: [...arr],
       sorted: Array.from({ length: n }, (_, i) => i),
       message: 'Array is sorted!',
+      stats: { comparisons, swaps, executionTime: avgExecutionTime }
     });
+
+    // Distribute execution time evenly across all steps
+    const timePerStep = avgExecutionTime / (steps.length - 1);
+    for (let i = 1; i < steps.length; i++) {
+      if (steps[i].stats) {
+        steps[i].stats!.executionTime = timePerStep * i;
+      }
+    }
 
     return steps;
   },

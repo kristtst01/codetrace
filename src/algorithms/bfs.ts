@@ -1,4 +1,5 @@
 import type { Algorithm, AlgorithmStep, GridData, Cell } from '../types';
+import { benchmarkAlgorithm } from '../utils/benchmark';
 
 function cellKey(cell: Cell): string {
   return `${cell.row},${cell.col}`;
@@ -77,16 +78,36 @@ export const bfs: Algorithm = {
 }`,
   generate: (input: any): AlgorithmStep[] => {
     const gridData = input as GridData;
-    const steps: AlgorithmStep[] = [];
     const { cells, start: startPos, end: endPos } = gridData;
-
     const startCell = cells[startPos.row][startPos.col];
     const endCell = cells[endPos.row][endPos.col];
+
+    // Benchmark the algorithm to get accurate execution time
+    const avgExecutionTime = benchmarkAlgorithm(() => {
+      const queue: Cell[] = [startCell];
+      const visited = new Set<string>();
+      visited.add(cellKey(startCell));
+
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        if (cellKey(current) === cellKey(endCell)) break;
+
+        const neighbors = getNeighbors(current, cells);
+        for (const neighbor of neighbors) {
+          if (neighbor.type === 'wall' || visited.has(cellKey(neighbor))) continue;
+          visited.add(cellKey(neighbor));
+          queue.push(neighbor);
+        }
+      }
+    });
+
+    const steps: AlgorithmStep[] = [];
 
     steps.push({
       array: [],
       grid: gridData,
       message: 'Starting Breadth-First Search',
+      stats: { nodesVisited: 0, pathLength: 0, executionTime: 0 }
     });
 
     const queue: Cell[] = [startCell];
@@ -107,7 +128,20 @@ export const bfs: Algorithm = {
           visited: visitedCells,
           path: finalPath,
           message: `Path found! Length: ${finalPath.length}`,
+          stats: {
+            nodesVisited: visitedCells.length,
+            pathLength: finalPath.length,
+            executionTime: avgExecutionTime
+          }
         });
+
+        // Distribute execution time evenly across all steps
+        const timePerStep = avgExecutionTime / (steps.length - 1);
+        for (let i = 1; i < steps.length; i++) {
+          if (steps[i].stats) {
+            steps[i].stats!.executionTime = timePerStep * i;
+          }
+        }
         break;
       }
 
@@ -132,6 +166,11 @@ export const bfs: Algorithm = {
           visited: [...visitedCells],
           exploring: exploringCells,
           message: `Exploring level from (${current.row}, ${current.col})`,
+          stats: {
+            nodesVisited: visitedCells.length,
+            pathLength: 0,
+            executionTime: 0
+          }
         });
       }
     }
@@ -142,7 +181,20 @@ export const bfs: Algorithm = {
         grid: gridData,
         visited: visitedCells,
         message: 'No path found',
+        stats: {
+          nodesVisited: visitedCells.length,
+          pathLength: 0,
+          executionTime: avgExecutionTime
+        }
       });
+
+      // Distribute execution time evenly across all steps
+      const timePerStep = avgExecutionTime / (steps.length - 1);
+      for (let i = 1; i < steps.length; i++) {
+        if (steps[i].stats) {
+          steps[i].stats!.executionTime = timePerStep * i;
+        }
+      }
     }
 
     return steps;

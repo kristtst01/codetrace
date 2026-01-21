@@ -2,6 +2,7 @@ import { Header } from './components/Header';
 import { VisualizationArea } from './components/VisualizationArea';
 import { GridVisualizer } from './components/visualizers/GridVisualizer';
 import { AlgorithmInfoCard } from './components/AlgorithmInfoCard';
+import { StatisticsDisplay } from './components/StatisticsDisplay';
 import { Card, CardContent } from './components/ui/card';
 import { ModeSelector } from './components/controls/ModeSelector';
 import { AlgorithmSelector } from './components/controls/AlgorithmSelector';
@@ -91,6 +92,8 @@ function App() {
               <StepCounter currentStep={currentStep} totalSteps={steps.length} />
             </CardContent>
           </Card>
+
+          {selectedAlgorithm && <StatisticsDisplay step={currentStepData} mode={mode} />}
         </div>
       </div>
     </div>
