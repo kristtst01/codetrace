@@ -31,10 +31,10 @@ function App() {
     <div className="h-screen overflow-hidden flex flex-col bg-background">
       <Header mode={mode} onModeChange={controls.setMode} />
 
+      <ErrorBoundary>
       <div className="flex-1 flex gap-4 overflow-hidden p-4 pt-0">
         {/* Visualizer area */}
         <div className="flex-1 min-w-0">
-          <ErrorBoundary>
             <VisualizationArea
               currentStepData={currentStepData}
               algorithm={algorithm}
@@ -42,7 +42,6 @@ function App() {
               onStartDrag={controls.setStart}
               onEndDrag={controls.setEnd}
             />
-          </ErrorBoundary>
         </div>
 
         {/* Sidebar */}
@@ -94,6 +93,7 @@ function App() {
           </Card>
         </div>
       </div>
+      </ErrorBoundary>
     </div>
   );
 }
