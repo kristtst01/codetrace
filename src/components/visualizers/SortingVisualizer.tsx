@@ -11,8 +11,8 @@ export const SortingVisualizer = ({ step }: SortingVisualizerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { width, height } = useContainerSize(containerRef);
-  const canvasWidth = Math.max(0, width - 32);
-  const canvasHeight = Math.max(0, height - 32);
+  const canvasWidth = width;
+  const canvasHeight = height;
 
   useVisualizerRenderer({ canvasRef, step, width: canvasWidth, height: canvasHeight });
 

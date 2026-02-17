@@ -63,15 +63,37 @@ export const useVisualizationControls = () => {
     }
   }, [playback, gridManagement, selectedAlgorithm, pathfindingExecution]);
 
+  const [displayRows, setDisplayRows] = useState(gridManagement.rows);
+  const [displayCols, setDisplayCols] = useState(gridManagement.cols);
+  const gridDebounceRef = useRef<number | null>(null);
+
   const handleRowsChange = useCallback((newRows: number) => {
     playback.reset();
-    gridManagement.setRows(newRows);
-  }, [playback, gridManagement]);
+    setDisplayRows(newRows);
+    if (gridDebounceRef.current !== null) {
+      clearTimeout(gridDebounceRef.current);
+    }
+    gridDebounceRef.current = window.setTimeout(() => {
+      gridManagement.setRows(newRows);
+      if (selectedAlgorithm) {
+        pathfindingExecution.executeAlgorithm(selectedAlgorithm);
+      }
+    }, 300);
+  }, [playback, gridManagement, selectedAlgorithm, pathfindingExecution]);
 
   const handleColsChange = useCallback((newCols: number) => {
     playback.reset();
-    gridManagement.setCols(newCols);
-  }, [playback, gridManagement]);
+    setDisplayCols(newCols);
+    if (gridDebounceRef.current !== null) {
+      clearTimeout(gridDebounceRef.current);
+    }
+    gridDebounceRef.current = window.setTimeout(() => {
+      gridManagement.setCols(newCols);
+      if (selectedAlgorithm) {
+        pathfindingExecution.executeAlgorithm(selectedAlgorithm);
+      }
+    }, 300);
+  }, [playback, gridManagement, selectedAlgorithm, pathfindingExecution]);
 
   const sizeDebounceRef = useRef<number | null>(null);
   const handleSizeChange = useCallback((newSize: number) => {
@@ -94,8 +116,8 @@ export const useVisualizationControls = () => {
     array: arrayManagement.array,
     size: arrayManagement.size,
     gridData: gridManagement.gridData,
-    rows: gridManagement.rows,
-    cols: gridManagement.cols,
+    rows: displayRows,
+    cols: displayCols,
     steps,
     currentStep: playback.currentStep,
     isPlaying: playback.isPlaying,
