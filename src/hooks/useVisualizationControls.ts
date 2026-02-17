@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import type { AlgorithmMode, MazeType } from '../types';
 import { useArrayManagement } from './useArrayManagement';
+import type { ArrayPreset } from './useArrayManagement';
 import { useGridManagement } from './useGridManagement';
 import { useAlgorithmExecution } from './useAlgorithmExecution';
 import { usePlaybackAnimation } from './usePlaybackAnimation';
@@ -38,9 +39,9 @@ export const useVisualizationControls = () => {
     playback.reset();
   }, [playback]);
 
-  const handleGenerateArray = useCallback(() => {
+  const handleGenerateArray = useCallback((preset: ArrayPreset = 'random') => {
     playback.reset();
-    arrayManagement.generateArray();
+    arrayManagement.generateArray(undefined, preset);
     if (selectedAlgorithm) {
       sortingExecution.executeAlgorithm(selectedAlgorithm);
     }
