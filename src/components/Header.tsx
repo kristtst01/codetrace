@@ -27,7 +27,7 @@ export const Header = ({ mode, onModeChange }: HeaderProps) => {
   return (
     <div className="flex justify-between items-center px-4 py-2">
       <h1 className="text-2xl font-bold tracking-tight">CodeTrace</h1>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         <button
           onClick={() => setDark((d) => !d)}
           className="inline-flex items-center justify-center rounded-md border border-input bg-background p-2 hover:bg-accent hover:text-accent-foreground"
