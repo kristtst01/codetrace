@@ -42,7 +42,7 @@ export const useGridRenderer = ({
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx || width === 0 || height === 0) return;
 
     const { grid } = step;
     const cellWidth = width / grid.cols;

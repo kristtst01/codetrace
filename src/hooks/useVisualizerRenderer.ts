@@ -20,7 +20,7 @@ export const useVisualizerRenderer = ({
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx || width === 0 || height === 0) return;
 
     ctx.clearRect(0, 0, width, height);
 
