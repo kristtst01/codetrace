@@ -37,21 +37,15 @@ export const getBarColor = (
 
 export const getCellColor = (
   cell: Cell,
-  visited: [number, number][] = [],
-  exploring: [number, number][] = [],
-  path: [number, number][] = []
+  visitedSet: Set<string>,
+  exploringSet: Set<string>,
+  pathSet: Set<string>,
 ): string => {
-  const coord = [cell.row, cell.col];
+  const key = `${cell.row},${cell.col}`;
 
-  if (path.some(p => p[0] === coord[0] && p[1] === coord[1])) {
-    return GRID_COLORS.path;
-  }
-  if (exploring.some(e => e[0] === coord[0] && e[1] === coord[1])) {
-    return GRID_COLORS.exploring;
-  }
-  if (visited.some(v => v[0] === coord[0] && v[1] === coord[1])) {
-    return GRID_COLORS.visited;
-  }
+  if (pathSet.has(key)) return GRID_COLORS.path;
+  if (exploringSet.has(key)) return GRID_COLORS.exploring;
+  if (visitedSet.has(key)) return GRID_COLORS.visited;
 
   return GRID_COLORS[cell.type];
 };

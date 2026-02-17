@@ -1,56 +1,6 @@
-import type { Algorithm, AlgorithmStep, GridData, Cell } from '../types';
-import { benchmarkAlgorithm } from '../utils/benchmark';
-
-function cellKey(cell: Cell): string {
-  return `${cell.row},${cell.col}`;
-}
-
-function getCost(from: Cell, to: Cell): number {
-  const isDiagonal = from.row !== to.row && from.col !== to.col;
-  return isDiagonal ? Math.SQRT2 : 1;
-}
-
-function getNeighbors(cell: Cell, grid: Cell[][]): Cell[] {
-  const { row, col } = cell;
-  const neighbors: Cell[] = [];
-  const directions = [
-    [-1, -1], [-1, 0], [-1, 1],
-    [0, -1],           [0, 1],
-    [1, -1],  [1, 0],  [1, 1],
-  ];
-
-  for (const [dr, dc] of directions) {
-    const newRow = row + dr;
-    const newCol = col + dc;
-
-    if (newRow >= 0 && newRow < grid.length &&
-        newCol >= 0 && newCol < grid[0].length) {
-      neighbors.push(grid[newRow][newCol]);
-    }
-  }
-
-  return neighbors;
-}
-
-function reconstructPath(
-  previous: Map<string, Cell>,
-  start: Cell,
-  end: Cell
-): [number, number][] {
-  const path: [number, number][] = [];
-  let current: Cell | undefined = end;
-
-  while (current && current !== start) {
-    path.unshift([current.row, current.col]);
-    current = previous.get(cellKey(current));
-  }
-
-  if (current === start) {
-    path.unshift([start.row, start.col]);
-  }
-
-  return path;
-}
+import type { Algorithm, PathfindingStep, GridData, Cell } from '../types';
+import { benchmarkAlgorithm, distributeExecutionTime } from '../utils/benchmark';
+import { cellKey, getCost, getNeighbors, reconstructPath } from '../utils/pathfindingUtils';
 
 export const dijkstra: Algorithm = {
   name: "Dijkstra's Algorithm",
@@ -90,7 +40,7 @@ export const dijkstra: Algorithm = {
 
   return reconstructPath(previous, start, end);
 }`,
-  generate: (input: any): AlgorithmStep[] => {
+  generate: (input: number[] | GridData): PathfindingStep[] => {
     const gridData = input as GridData;
     const { cells, start: startPos, end: endPos } = gridData;
     const startCell = cells[startPos.row][startPos.col];
@@ -134,10 +84,10 @@ export const dijkstra: Algorithm = {
       }
     });
 
-    const steps: AlgorithmStep[] = [];
+    const steps: PathfindingStep[] = [];
 
     steps.push({
-      array: [],
+      type: 'pathfinding',
       grid: gridData,
       message: 'Starting Dijkstra\'s Algorithm',
       stats: { nodesVisited: 0, pathLength: 0, executionTime: 0 }
@@ -169,7 +119,7 @@ export const dijkstra: Algorithm = {
       if (cellKey(current) === cellKey(endCell)) {
         const finalPath = reconstructPath(previous, startCell, endCell);
         steps.push({
-          array: [],
+          type: 'pathfinding',
           grid: gridData,
           visited: visitedCells,
           path: finalPath,
@@ -181,13 +131,7 @@ export const dijkstra: Algorithm = {
           }
         });
 
-        // Distribute execution time evenly across all steps
-        const timePerStep = avgExecutionTime / (steps.length - 1);
-        for (let i = 1; i < steps.length; i++) {
-          if (steps[i].stats) {
-            steps[i].stats!.executionTime = timePerStep * i;
-          }
-        }
+        distributeExecutionTime(steps, avgExecutionTime);
         break;
       }
 
@@ -215,7 +159,7 @@ export const dijkstra: Algorithm = {
       }
 
       steps.push({
-        array: [],
+        type: 'pathfinding',
         grid: gridData,
         visited: [...visitedCells],
         exploring: exploringCells,
@@ -230,7 +174,7 @@ export const dijkstra: Algorithm = {
 
     if (steps.length === 1 || !steps[steps.length - 1].path) {
       steps.push({
-        array: [],
+        type: 'pathfinding',
         grid: gridData,
         visited: visitedCells,
         message: 'No path found',
@@ -241,13 +185,7 @@ export const dijkstra: Algorithm = {
         }
       });
 
-      // Distribute execution time evenly across all steps
-      const timePerStep = avgExecutionTime / (steps.length - 1);
-      for (let i = 1; i < steps.length; i++) {
-        if (steps[i].stats) {
-          steps[i].stats!.executionTime = timePerStep * i;
-        }
-      }
+      distributeExecutionTime(steps, avgExecutionTime);
     }
 
     return steps;

@@ -1,5 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
-import type { GridData, Cell } from '../types';
+import type { GridData, Cell, MazeType } from '../types';
+import { createGridData } from '../utils/gridUtils';
+import {
+  generateRecursiveDivision,
+  generateRandomizedPrims,
+  generateRandomWalls,
+} from '../utils/mazeGeneration';
 
 export const useGridManagement = (initialRows: number = 25, initialCols: number = 50) => {
   const [gridData, setGridData] = useState<GridData | null>(null);
@@ -7,35 +13,7 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
   const [cols, setCols] = useState(initialCols);
 
   const generateEmptyGrid = useCallback(() => {
-    const newCells: Cell[][] = [];
-
-    for (let row = 0; row < rows; row++) {
-      newCells[row] = [];
-      for (let col = 0; col < cols; col++) {
-        newCells[row][col] = {
-          row,
-          col,
-          type: 'empty',
-        };
-      }
-    }
-
-    const startRow = Math.floor(rows / 2);
-    const startCol = Math.floor(cols / 4);
-    const endRow = Math.floor(rows / 2);
-    const endCol = Math.floor((cols * 3) / 4);
-
-    newCells[startRow][startCol].type = 'start';
-    newCells[endRow][endCol].type = 'end';
-
-    const newGridData: GridData = {
-      rows,
-      cols,
-      cells: newCells,
-      start: { row: startRow, col: startCol },
-      end: { row: endRow, col: endCol },
-    };
-
+    const newGridData = createGridData(rows, cols);
     setGridData(newGridData);
     return newGridData;
   }, [rows, cols]);
@@ -46,10 +24,8 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
     const cell = gridData.cells[row][col];
     if (cell.type === 'start' || cell.type === 'end') return;
 
-    const newCells = gridData.cells.map((rowArray) =>
-      rowArray.map((c) => ({ ...c }))
-    );
-
+    const newCells = [...gridData.cells];
+    newCells[row] = newCells[row].map((c) => ({ ...c }));
     newCells[row][col].type = isWall ? 'wall' : 'empty';
 
     setGridData({
@@ -61,15 +37,19 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
   const setStart = useCallback((row: number, col: number) => {
     if (!gridData) return;
 
-    const newCells = gridData.cells.map((rowArray) =>
-      rowArray.map((c) => ({ ...c }))
-    );
+    const cell = gridData.cells[row][col];
+    if (cell.type === 'end') return;
 
     const oldStart = gridData.start;
+    const newCells = [...gridData.cells];
+
+    // Clone affected rows (may be the same row)
+    const affectedRows = new Set([oldStart.row, row]);
+    for (const r of affectedRows) {
+      newCells[r] = newCells[r].map((c) => ({ ...c }));
+    }
+
     newCells[oldStart.row][oldStart.col].type = 'empty';
-
-    if (newCells[row][col].type === 'end') return;
-
     newCells[row][col].type = 'start';
 
     setGridData({
@@ -82,15 +62,18 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
   const setEnd = useCallback((row: number, col: number) => {
     if (!gridData) return;
 
-    const newCells = gridData.cells.map((rowArray) =>
-      rowArray.map((c) => ({ ...c }))
-    );
+    const cell = gridData.cells[row][col];
+    if (cell.type === 'start') return;
 
     const oldEnd = gridData.end;
+    const newCells = [...gridData.cells];
+
+    const affectedRows = new Set([oldEnd.row, row]);
+    for (const r of affectedRows) {
+      newCells[r] = newCells[r].map((c) => ({ ...c }));
+    }
+
     newCells[oldEnd.row][oldEnd.col].type = 'empty';
-
-    if (newCells[row][col].type === 'start') return;
-
     newCells[row][col].type = 'end';
 
     setGridData({
@@ -100,8 +83,8 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
     });
   }, [gridData]);
 
-  const clearWalls = useCallback(() => {
-    if (!gridData) return;
+  const clearWalls = useCallback((): GridData | null => {
+    if (!gridData) return null;
 
     const newCells = gridData.cells.map((rowArray) =>
       rowArray.map((c) => ({
@@ -110,11 +93,26 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
       } as Cell))
     );
 
-    setGridData({
+    const newGridData = {
       ...gridData,
       cells: newCells,
-    });
+    };
+    setGridData(newGridData);
+    return newGridData;
   }, [gridData]);
+
+  const generateMaze = useCallback((type: MazeType): GridData => {
+    let newGridData;
+    if (type === 'recursive-division') {
+      newGridData = generateRecursiveDivision(rows, cols);
+    } else if (type === 'randomized-prims') {
+      newGridData = generateRandomizedPrims(rows, cols);
+    } else {
+      newGridData = generateRandomWalls(rows, cols, 0.3);
+    }
+    setGridData(newGridData);
+    return newGridData;
+  }, [rows, cols]);
 
   useEffect(() => {
     generateEmptyGrid();
@@ -128,6 +126,7 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
     setCols,
     setGridData,
     generateEmptyGrid,
+    generateMaze,
     setWall,
     setStart,
     setEnd,

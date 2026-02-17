@@ -1,45 +1,47 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { getAlgorithm } from '../algorithms';
 import type { AlgorithmStep, GridData } from '../types';
 
+function createInitialStep(input: number[] | GridData | null): AlgorithmStep {
+  if (Array.isArray(input)) {
+    return { type: 'sorting', array: input };
+  }
+  if (input) {
+    return { type: 'pathfinding', grid: input };
+  }
+  return { type: 'sorting', array: [] };
+}
+
 export const useAlgorithmExecution = (input: number[] | GridData | null) => {
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<string | null>(null);
-  const [steps, setSteps] = useState<AlgorithmStep[]>([
-    Array.isArray(input) ? { array: input } : { array: [], grid: input || undefined }
-  ]);
+  const [steps, setSteps] = useState<AlgorithmStep[]>([createInitialStep(input)]);
+  const selectedAlgorithmRef = useRef<string | null>(null);
 
+  // Re-execute when input changes (but NOT when selectedAlgorithm changes — that's handled by executeAlgorithm)
   useEffect(() => {
-    if (Array.isArray(input)) {
-      setSteps([{ array: input }]);
-    } else if (input) {
-      setSteps([{ array: [], grid: input }]);
-    }
-
-    // Re-execute the selected algorithm when input changes
-    if (selectedAlgorithm && input) {
-      const algorithm = getAlgorithm(selectedAlgorithm);
+    if (selectedAlgorithmRef.current && input) {
+      const algorithm = getAlgorithm(selectedAlgorithmRef.current);
       if (algorithm) {
-        const newSteps = algorithm.generate(input);
-        setSteps(newSteps);
+        setSteps(algorithm.generate(input));
+        return;
       }
     }
-  }, [input, selectedAlgorithm]);
 
-  const executeAlgorithm = useCallback((algorithmKey: string) => {
+    setSteps([createInitialStep(input)]);
+  }, [input]);
+
+  const executeAlgorithm = useCallback((algorithmKey: string, directInput?: number[] | GridData | null) => {
     setSelectedAlgorithm(algorithmKey);
+    selectedAlgorithmRef.current = algorithmKey;
     const algorithm = getAlgorithm(algorithmKey);
-    if (algorithm && input) {
-      const newSteps = algorithm.generate(input);
-      setSteps(newSteps);
+    const effectiveInput = directInput ?? input;
+    if (algorithm && effectiveInput) {
+      setSteps(algorithm.generate(effectiveInput));
     }
   }, [input]);
 
   const resetSteps = useCallback(() => {
-    if (Array.isArray(input)) {
-      setSteps([{ array: input }]);
-    } else if (input) {
-      setSteps([{ array: [], grid: input }]);
-    }
+    setSteps([createInitialStep(input)]);
   }, [input]);
 
   return {

@@ -1,14 +1,9 @@
-import { useState, useCallback } from 'react';
-import type { AlgorithmMode } from '../types';
+import { useState, useCallback, useRef } from 'react';
+import type { AlgorithmMode, MazeType } from '../types';
 import { useArrayManagement } from './useArrayManagement';
 import { useGridManagement } from './useGridManagement';
 import { useAlgorithmExecution } from './useAlgorithmExecution';
 import { usePlaybackAnimation } from './usePlaybackAnimation';
-import {
-  generateRecursiveDivision,
-  generateRandomizedPrims,
-  generateRandomWalls,
-} from '../utils/mazeGeneration';
 
 export const useVisualizationControls = () => {
   const [mode, setMode] = useState<AlgorithmMode>('sorting');
@@ -51,30 +46,20 @@ export const useVisualizationControls = () => {
     }
   }, [playback, arrayManagement, selectedAlgorithm, sortingExecution]);
 
-  const handleGenerateMaze = useCallback((type: string) => {
+  const handleGenerateMaze = useCallback((type: MazeType) => {
     playback.reset();
-    let newGridData;
-
-    if (type === 'recursive-division') {
-      newGridData = generateRecursiveDivision(gridManagement.rows, gridManagement.cols);
-    } else if (type === 'randomized-prims') {
-      newGridData = generateRandomizedPrims(gridManagement.rows, gridManagement.cols);
-    } else {
-      newGridData = generateRandomWalls(gridManagement.rows, gridManagement.cols, 0.3);
-    }
-
-    gridManagement.setGridData(newGridData);
+    const newGridData = gridManagement.generateMaze(type);
 
     if (selectedAlgorithm) {
-      pathfindingExecution.executeAlgorithm(selectedAlgorithm);
+      pathfindingExecution.executeAlgorithm(selectedAlgorithm, newGridData);
     }
   }, [playback, gridManagement, selectedAlgorithm, pathfindingExecution]);
 
   const handleClearWalls = useCallback(() => {
     playback.reset();
-    gridManagement.clearWalls();
-    if (selectedAlgorithm) {
-      pathfindingExecution.executeAlgorithm(selectedAlgorithm);
+    const clearedGrid = gridManagement.clearWalls();
+    if (selectedAlgorithm && clearedGrid) {
+      pathfindingExecution.executeAlgorithm(selectedAlgorithm, clearedGrid);
     }
   }, [playback, gridManagement, selectedAlgorithm, pathfindingExecution]);
 
@@ -88,10 +73,20 @@ export const useVisualizationControls = () => {
     gridManagement.setCols(newCols);
   }, [playback, gridManagement]);
 
+  const sizeDebounceRef = useRef<number | null>(null);
   const handleSizeChange = useCallback((newSize: number) => {
     playback.reset();
     arrayManagement.setSize(newSize);
-  }, [playback, arrayManagement]);
+    if (sizeDebounceRef.current !== null) {
+      clearTimeout(sizeDebounceRef.current);
+    }
+    sizeDebounceRef.current = window.setTimeout(() => {
+      arrayManagement.generateArray(newSize);
+      if (selectedAlgorithm) {
+        sortingExecution.executeAlgorithm(selectedAlgorithm);
+      }
+    }, 300);
+  }, [playback, arrayManagement, selectedAlgorithm, sortingExecution]);
 
   return {
     mode,

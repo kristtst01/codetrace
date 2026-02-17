@@ -1,4 +1,4 @@
-import { Slider } from '../ui/slider';
+import { LabeledSlider } from './LabeledSlider';
 
 interface GridSizeControlProps {
   rows: number;
@@ -15,34 +15,22 @@ export const GridSizeControl = ({
 }: GridSizeControlProps) => {
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <label className="text-sm font-medium">Rows</label>
-          <span className="text-sm text-muted-foreground">{rows}</span>
-        </div>
-        <Slider
-          value={[rows]}
-          onValueChange={([value]) => onRowsChange(value)}
-          min={10}
-          max={50}
-          step={5}
-          className="w-full"
-        />
-      </div>
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <label className="text-sm font-medium">Columns</label>
-          <span className="text-sm text-muted-foreground">{cols}</span>
-        </div>
-        <Slider
-          value={[cols]}
-          onValueChange={([value]) => onColsChange(value)}
-          min={10}
-          max={100}
-          step={5}
-          className="w-full"
-        />
-      </div>
+      <LabeledSlider
+        label="Rows"
+        value={rows}
+        onValueChange={onRowsChange}
+        min={10}
+        max={50}
+        step={5}
+      />
+      <LabeledSlider
+        label="Columns"
+        value={cols}
+        onValueChange={onColsChange}
+        min={10}
+        max={100}
+        step={5}
+      />
     </div>
   );
 };

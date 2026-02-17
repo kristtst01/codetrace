@@ -44,16 +44,12 @@ export const usePlaybackAnimation = ({ totalSteps, speed }: UsePlaybackAnimation
   }, []);
 
   const stepForward = useCallback(() => {
-    if (currentStep < totalSteps - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  }, [currentStep, totalSteps]);
+    setCurrentStep(prev => Math.min(prev + 1, totalSteps - 1));
+  }, [totalSteps]);
 
   const stepBackward = useCallback(() => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  }, [currentStep]);
+    setCurrentStep(prev => Math.max(prev - 1, 0));
+  }, []);
 
   return {
     currentStep,

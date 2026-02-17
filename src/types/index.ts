@@ -16,24 +16,37 @@ export interface GridData {
   end: { row: number; col: number };
 }
 
-export interface AlgorithmStep {
+export type MazeType = 'recursive-division' | 'randomized-prims' | 'random-walls';
+
+export interface AlgorithmStats {
+  comparisons?: number;
+  swaps?: number;
+  nodesVisited?: number;
+  pathLength?: number;
+  executionTime?: number;
+}
+
+export interface SortingStep {
+  type: 'sorting';
   array: number[];
-  grid?: GridData;
   comparing?: number[];
   swapping?: number[];
   sorted?: number[];
+  message?: string;
+  stats?: AlgorithmStats;
+}
+
+export interface PathfindingStep {
+  type: 'pathfinding';
+  grid: GridData;
   visited?: [number, number][];
   exploring?: [number, number][];
   path?: [number, number][];
   message?: string;
-  stats?: {
-    comparisons?: number;
-    swaps?: number;
-    nodesVisited?: number;
-    pathLength?: number;
-    executionTime?: number;
-  };
+  stats?: AlgorithmStats;
 }
+
+export type AlgorithmStep = SortingStep | PathfindingStep;
 
 export interface Algorithm {
   name: string;
@@ -42,7 +55,7 @@ export interface Algorithm {
   timeComplexity: string;
   spaceComplexity: string;
   code: string;
-  generate: (input: any) => AlgorithmStep[];
+  generate: (input: number[] | GridData) => AlgorithmStep[];
 }
 
 export type AlgorithmMode = 'sorting' | 'pathfinding';

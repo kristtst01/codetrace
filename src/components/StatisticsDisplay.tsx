@@ -1,12 +1,11 @@
 import { Card, CardContent } from './ui/card';
-import type { AlgorithmStep, AlgorithmMode } from '../types';
+import type { AlgorithmStep } from '../types';
 
 interface StatisticsDisplayProps {
   step: AlgorithmStep;
-  mode: AlgorithmMode;
 }
 
-export const StatisticsDisplay = ({ step, mode }: StatisticsDisplayProps) => {
+export const StatisticsDisplay = ({ step }: StatisticsDisplayProps) => {
   const stats = step.stats;
 
   if (!stats) return null;
@@ -28,7 +27,7 @@ export const StatisticsDisplay = ({ step, mode }: StatisticsDisplayProps) => {
       <CardContent className="pt-6">
         <h3 className="text-sm font-medium mb-4">Statistics</h3>
         <div className="space-y-3">
-          {mode === 'sorting' ? (
+          {step.type === 'sorting' ? (
             <>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Comparisons</span>

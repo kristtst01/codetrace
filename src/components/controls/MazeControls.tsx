@@ -1,7 +1,8 @@
 import { Button } from '../ui/button';
+import type { MazeType } from '../../types';
 
 interface MazeControlsProps {
-  onGenerateMaze: (type: string) => void;
+  onGenerateMaze: (type: MazeType) => void;
 }
 
 export const MazeControls = ({ onGenerateMaze }: MazeControlsProps) => {
