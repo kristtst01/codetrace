@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Header } from './components/Header';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { VisualizationArea } from './components/VisualizationArea';
@@ -14,11 +14,24 @@ import { ClearGridButton } from './components/controls/ClearGridButton';
 import { PlaybackControls } from './components/controls/PlaybackControls';
 import { SpeedControl } from './components/controls/SpeedControl';
 import { StepCounter } from './components/controls/StepCounter';
+import { SoundToggle } from './components/controls/SoundToggle';
 import { useVisualizationControls } from './hooks/useVisualizationControls';
 import { getAlgorithm } from './algorithms';
 
 
 function App() {
+  const [soundEnabled, setSoundEnabled] = useState(
+    () => localStorage.getItem('codetrace-sound') === 'true'
+  );
+
+  const toggleSound = useCallback(() => {
+    setSoundEnabled((prev) => {
+      const next = !prev;
+      localStorage.setItem('codetrace-sound', String(next));
+      return next;
+    });
+  }, []);
+
   const controls = useVisualizationControls();
   const { mode, steps, currentStep, selectedAlgorithm, array, gridData } = controls;
 
@@ -72,6 +85,7 @@ function App() {
             <VisualizationArea
               currentStepData={currentStepData}
               algorithm={algorithm}
+              soundEnabled={mode === 'sorting' && soundEnabled}
               onCellClick={controls.setWall}
               onStartDrag={controls.setStart}
               onEndDrag={controls.setEnd}
@@ -120,6 +134,10 @@ function App() {
               />
 
               <SpeedControl speed={controls.speed} onSpeedChange={controls.setSpeed} />
+
+              {mode === 'sorting' && (
+                <SoundToggle soundEnabled={soundEnabled} onToggle={toggleSound} />
+              )}
 
               <StepCounter currentStep={currentStep} totalSteps={steps.length} />
 
