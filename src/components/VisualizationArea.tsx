@@ -20,7 +20,7 @@ export const VisualizationArea = ({
 }: VisualizationAreaProps) => {
   return (
     <div className="flex flex-col h-full gap-4">
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-[300px]">
         {currentStepData.type === 'sorting' ? (
           <SortingVisualizer step={currentStepData} />
         ) : (
