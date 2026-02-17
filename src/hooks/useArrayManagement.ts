@@ -23,10 +23,16 @@ export const useArrayManagement = (initialSize: number = 20) => {
     return newArray;
   }, [handleSetSize]);
 
+  const setCustomArray = useCallback((arr: number[]) => {
+    setArray(arr);
+    handleSetSize(arr.length);
+  }, [handleSetSize]);
+
   return {
     array,
     size,
     setSize: handleSetSize,
     generateArray,
+    setCustomArray,
   };
 };

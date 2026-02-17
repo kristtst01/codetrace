@@ -7,6 +7,7 @@ import { Card, CardContent } from './components/ui/card';
 import { AlgorithmSelector } from './components/controls/AlgorithmSelector';
 import { ArraySizeControl } from './components/controls/ArraySizeControl';
 import { GenerateArrayButton } from './components/controls/GenerateArrayButton';
+import { ArrayInput } from './components/controls/ArrayInput';
 import { GridSizeControl } from './components/controls/GridSizeControl';
 import { MazeControls } from './components/controls/MazeControls';
 import { ClearGridButton } from './components/controls/ClearGridButton';
@@ -90,6 +91,7 @@ function App() {
               {mode === 'sorting' ? (
                 <>
                   <ArraySizeControl size={controls.size} onSizeChange={controls.setSize} />
+                  <ArrayInput onSetCustomArray={controls.handleSetCustomArray} />
                   <GenerateArrayButton onGenerate={controls.handleGenerateArray} />
                 </>
               ) : (
