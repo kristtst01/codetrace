@@ -9,8 +9,10 @@ interface VisualizationAreaProps {
 
 export const VisualizationArea = ({ currentStepData, algorithm }: VisualizationAreaProps) => {
   return (
-    <div className="lg:col-span-2 space-y-4">
-      <SortingVisualizer step={currentStepData} width={800} height={400} />
+    <div className="flex flex-col h-full gap-4">
+      <div className="flex-1 min-h-0">
+        <SortingVisualizer step={currentStepData} />
+      </div>
       {algorithm && (
         <AlgorithmInfoCard algorithm={algorithm} currentMessage={currentStepData.message} />
       )}
