@@ -8,17 +8,14 @@ interface ModeSelectorProps {
 
 export const ModeSelector = ({ mode, onModeChange }: ModeSelectorProps) => {
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium">Visualization Mode</label>
-      <Select value={mode} onValueChange={onModeChange}>
-        <SelectTrigger>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="sorting">Sorting Algorithms</SelectItem>
-          <SelectItem value="pathfinding">Pathfinding Algorithms</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
+    <Select value={mode} onValueChange={onModeChange}>
+      <SelectTrigger className="w-52">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="sorting">Sorting Algorithms</SelectItem>
+        <SelectItem value="pathfinding">Pathfinding Algorithms</SelectItem>
+      </SelectContent>
+    </Select>
   );
 };

@@ -1,8 +1,16 @@
-export const Header = () => {
+import { ModeSelector } from './controls/ModeSelector';
+import type { AlgorithmMode } from '../types';
+
+interface HeaderProps {
+  mode: AlgorithmMode;
+  onModeChange: (mode: AlgorithmMode) => void;
+}
+
+export const Header = ({ mode, onModeChange }: HeaderProps) => {
   return (
-    <div className="text-center space-y-2">
-      <h1 className="text-4xl font-bold tracking-tight">CodeTrace</h1>
-      <p className="text-muted-foreground">Visualize algorithms in real-time</p>
+    <div className="flex justify-between items-center px-4 py-2">
+      <h1 className="text-2xl font-bold tracking-tight">CodeTrace</h1>
+      <ModeSelector mode={mode} onModeChange={onModeChange} />
     </div>
   );
 };

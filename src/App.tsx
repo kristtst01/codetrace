@@ -3,7 +3,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { VisualizationArea } from './components/VisualizationArea';
 import { StatisticsDisplay } from './components/StatisticsDisplay';
 import { Card, CardContent } from './components/ui/card';
-import { ModeSelector } from './components/controls/ModeSelector';
 import { AlgorithmSelector } from './components/controls/AlgorithmSelector';
 import { ArraySizeControl } from './components/controls/ArraySizeControl';
 import { GenerateArrayButton } from './components/controls/GenerateArrayButton';
@@ -29,27 +28,27 @@ function App() {
   const algorithm = selectedAlgorithm ? getAlgorithm(selectedAlgorithm) : null;
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <Header />
+    <div className="h-screen overflow-hidden flex flex-col bg-background">
+      <Header mode={mode} onModeChange={controls.setMode} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            <ErrorBoundary>
-              <VisualizationArea
-                currentStepData={currentStepData}
-                algorithm={algorithm}
-                onCellClick={controls.setWall}
-                onStartDrag={controls.setStart}
-                onEndDrag={controls.setEnd}
-              />
-            </ErrorBoundary>
-          </div>
+      <div className="flex-1 flex gap-4 overflow-hidden p-4 pt-0">
+        {/* Visualizer area */}
+        <div className="flex-1 min-w-0">
+          <ErrorBoundary>
+            <VisualizationArea
+              currentStepData={currentStepData}
+              algorithm={algorithm}
+              onCellClick={controls.setWall}
+              onStartDrag={controls.setStart}
+              onEndDrag={controls.setEnd}
+            />
+          </ErrorBoundary>
+        </div>
 
-          <Card>
+        {/* Sidebar */}
+        <div className="w-72 flex-shrink-0 overflow-y-auto">
+          <Card className="h-fit">
             <CardContent className="pt-6 space-y-6">
-              <ModeSelector mode={mode} onModeChange={controls.setMode} />
-
               <AlgorithmSelector
                 selectedAlgorithm={selectedAlgorithm}
                 onAlgorithmChange={controls.handleAlgorithmChange}
@@ -89,10 +88,10 @@ function App() {
               <SpeedControl speed={controls.speed} onSpeedChange={controls.setSpeed} />
 
               <StepCounter currentStep={currentStep} totalSteps={steps.length} />
+
+              {selectedAlgorithm && <StatisticsDisplay step={currentStepData} />}
             </CardContent>
           </Card>
-
-          {selectedAlgorithm && <StatisticsDisplay step={currentStepData} />}
         </div>
       </div>
     </div>
