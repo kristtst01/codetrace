@@ -36,7 +36,7 @@ export const AlgorithmInfoCard = ({ algorithm, currentMessage }: AlgorithmInfoCa
 
         {showCode && (
           <div className="mt-4">
-            <div className="bg-muted p-4 rounded-md overflow-x-auto">
+            <div className="bg-muted p-3 rounded-md max-h-[30vh] overflow-y-auto overflow-x-auto">
               <pre className="text-sm">
                 <code>{algorithm.code}</code>
               </pre>
