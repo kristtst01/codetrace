@@ -46,6 +46,14 @@ export const useVisualizationControls = () => {
     }
   }, [playback, arrayManagement, selectedAlgorithm, sortingExecution]);
 
+  const handleSetCustomArray = useCallback((arr: number[]) => {
+    playback.reset();
+    arrayManagement.setCustomArray(arr);
+    if (selectedAlgorithm) {
+      sortingExecution.executeAlgorithm(selectedAlgorithm);
+    }
+  }, [playback, arrayManagement, selectedAlgorithm, sortingExecution]);
+
   const handleGenerateMaze = useCallback((type: MazeType) => {
     playback.reset();
     const newGridData = gridManagement.generateMaze(type);
@@ -137,6 +145,7 @@ export const useVisualizationControls = () => {
     handleAlgorithmChange,
     handleReset,
     handleGenerateArray,
+    handleSetCustomArray,
     handleGenerateMaze,
     handleClearWalls,
   };

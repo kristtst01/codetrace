@@ -45,7 +45,7 @@ Use `type/short-description` where type is one of: `feat`, `fix`, `refactor`, `c
 The agent should always read `ISSUES.md` and check the current state of the files listed in the issue before making changes. Code may have changed since the issue was written — other issues may have been completed first, files may have been renamed, or logic may have moved. Never assume the issue description is a perfect snapshot of the current code.
 
 ### When writing new issues
-Before writing an issue, the author (human or agent) must read the actual source files that will be affected. Issues should reference real line numbers, real class/function names, and real current behavior — not guesses. If a file has changed since the issue was drafted, update the issue before starting work.
+Before writing an issue, the author (human or agent) must read the actual source files that will be affected. Issues should reference real file paths and function names — not guesses. Line numbers are NOT needed (they go stale quickly). If a file has changed since the issue was drafted, update the issue before starting work.
 
 
 ### Principles
