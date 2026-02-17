@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Header } from './components/Header';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { VisualizationArea } from './components/VisualizationArea';
@@ -26,6 +27,38 @@ function App() {
       : { type: 'pathfinding' as const, grid: gridData! }
   );
   const algorithm = selectedAlgorithm ? getAlgorithm(selectedAlgorithm) : null;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
+        return;
+      }
+
+      switch (e.code) {
+        case 'Space':
+          e.preventDefault();
+          if (controls.isPlaying) {
+            controls.pause();
+          } else {
+            controls.play();
+          }
+          break;
+        case 'ArrowRight':
+          controls.stepForward();
+          break;
+        case 'ArrowLeft':
+          controls.stepBackward();
+          break;
+        case 'KeyR':
+          controls.handleReset();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [controls]);
 
   return (
     <div className="h-screen overflow-hidden flex flex-col bg-background">
@@ -89,6 +122,15 @@ function App() {
               <StepCounter currentStep={currentStep} totalSteps={steps.length} />
 
               {selectedAlgorithm && <StatisticsDisplay step={currentStepData} />}
+
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p className="font-medium">Keyboard Shortcuts</p>
+                <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
+                  <kbd className="font-mono">Space</kbd><span>Play / Pause</span>
+                  <kbd className="font-mono">◀ ▶</kbd><span>Step</span>
+                  <kbd className="font-mono">R</kbd><span>Reset</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
