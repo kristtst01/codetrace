@@ -7,15 +7,28 @@ export const VISUALIZER_COLORS = {
   sorted: '#22c55e',     // Green - sorted
 } as const;
 
-export const GRID_COLORS = {
-  empty: '#ffffff',      // White - empty cell
-  wall: '#1e293b',       // Dark slate - wall
-  start: '#22c55e',      // Green - start point
-  end: '#ef4444',        // Red - end point
-  visited: '#bfdbfe',    // Light blue - visited
-  exploring: '#fbbf24',  // Yellow - currently exploring
-  path: '#3b82f6',       // Blue - final path
-} as const;
+function getCssColor(variable: string, fallback: string): string {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+  return value ? `hsl(${value})` : fallback;
+}
+
+function isDark(): boolean {
+  return document.documentElement.classList.contains('dark');
+}
+
+export const getGridColors = () => {
+  const dark = isDark();
+  return {
+    empty: getCssColor('--background', dark ? '#0a0a0a' : '#ffffff'),
+    wall: dark ? '#6b7280' : '#1e293b',       // Gray-500 in dark, dark slate in light
+    start: dark ? '#4ade80' : '#22c55e',       // Brighter green in dark
+    end: dark ? '#f87171' : '#ef4444',         // Brighter red in dark
+    visited: dark ? '#1e3a5f' : '#bfdbfe',     // Deep blue in dark, light blue in light
+    exploring: dark ? '#ca8a04' : '#fbbf24',   // Darker yellow in dark to avoid glare
+    path: dark ? '#60a5fa' : '#3b82f6',        // Brighter blue in dark
+  };
+};
+
 
 export const getBarColor = (
   index: number,
@@ -42,10 +55,11 @@ export const getCellColor = (
   pathSet: Set<string>,
 ): string => {
   const key = `${cell.row},${cell.col}`;
+  const colors = getGridColors();
 
-  if (pathSet.has(key)) return GRID_COLORS.path;
-  if (exploringSet.has(key)) return GRID_COLORS.exploring;
-  if (visitedSet.has(key)) return GRID_COLORS.visited;
+  if (pathSet.has(key)) return colors.path;
+  if (exploringSet.has(key)) return colors.exploring;
+  if (visitedSet.has(key)) return colors.visited;
 
-  return GRID_COLORS[cell.type];
+  return colors[cell.type];
 };
