@@ -6,6 +6,7 @@ import type { AlgorithmStep, Algorithm } from '../types';
 interface VisualizationAreaProps {
   currentStepData: AlgorithmStep;
   algorithm: Algorithm | null | undefined;
+  soundEnabled?: boolean;
   onCellClick?: (row: number, col: number, isWall: boolean) => void;
   onStartDrag?: (row: number, col: number) => void;
   onEndDrag?: (row: number, col: number) => void;
@@ -14,6 +15,7 @@ interface VisualizationAreaProps {
 export const VisualizationArea = ({
   currentStepData,
   algorithm,
+  soundEnabled,
   onCellClick,
   onStartDrag,
   onEndDrag,
@@ -22,7 +24,7 @@ export const VisualizationArea = ({
     <div className="flex flex-col h-full gap-4">
       <div className="flex-1 min-h-[300px]">
         {currentStepData.type === 'sorting' ? (
-          <SortingVisualizer step={currentStepData} />
+          <SortingVisualizer step={currentStepData} soundEnabled={soundEnabled} />
         ) : (
           <GridVisualizer
             step={currentStepData}

@@ -5,16 +5,17 @@ import type { SortingStep } from '../../types';
 
 interface SortingVisualizerProps {
   step: SortingStep;
+  soundEnabled?: boolean;
 }
 
-export const SortingVisualizer = ({ step }: SortingVisualizerProps) => {
+export const SortingVisualizer = ({ step, soundEnabled }: SortingVisualizerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { width, height } = useContainerSize(containerRef);
   const canvasWidth = width;
   const canvasHeight = height;
 
-  useVisualizerRenderer({ canvasRef, step, width: canvasWidth, height: canvasHeight });
+  useVisualizerRenderer({ canvasRef, step, width: canvasWidth, height: canvasHeight, soundEnabled });
 
   return (
     <div ref={containerRef} className="w-full h-full bg-card rounded-lg border p-4">
