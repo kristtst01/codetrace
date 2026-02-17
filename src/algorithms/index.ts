@@ -5,6 +5,7 @@ import { mergeSort } from './mergeSort';
 import { insertionSort } from './insertionSort';
 import { selectionSort } from './selectionSort';
 import { heapSort } from './heapSort';
+import { shellSort } from './shellSort';
 import { dijkstra } from './dijkstra';
 import { aStar } from './aStar';
 import { bfs } from './bfs';
@@ -17,6 +18,7 @@ export const algorithms: Record<string, Algorithm> = {
   insertionSort,
   selectionSort,
   heapSort,
+  shellSort,
   dijkstra,
   aStar,
   bfs,
