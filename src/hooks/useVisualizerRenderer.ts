@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { getBarColor } from '../utils/colorUtils';
 import type { SortingStep } from '../types';
+import { useTheme } from './useTheme';
 
 interface UseVisualizerRendererProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -15,6 +16,7 @@ export const useVisualizerRenderer = ({
   width,
   height,
 }: UseVisualizerRendererProps) => {
+  const dark = useTheme();
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -39,10 +41,11 @@ export const useVisualizerRenderer = ({
       ctx.fillStyle = color;
       ctx.fillRect(x + 2, y, barWidth - 4, barHeight);
 
-      ctx.fillStyle = '#ffffff';
+      const foreground = getComputedStyle(document.documentElement).getPropertyValue('--foreground').trim();
+      ctx.fillStyle = foreground ? `hsl(${foreground})` : '#ffffff';
       ctx.font = '12px monospace';
       ctx.textAlign = 'center';
       ctx.fillText(value.toString(), x + barWidth / 2, y - 5);
     });
-  }, [canvasRef, step, width, height]);
+  }, [canvasRef, step, width, height, dark]);
 };

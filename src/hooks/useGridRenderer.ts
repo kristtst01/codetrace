@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { PathfindingStep } from '../types';
 import { getCellColor } from '../utils/colorUtils';
+import { useTheme } from './useTheme';
 
 interface UseGridRendererProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -21,6 +22,7 @@ export const useGridRenderer = ({
   onStartDrag,
   onEndDrag,
 }: UseGridRendererProps) => {
+  const dark = useTheme();
   const dragStateRef = useRef<{
     isDragging: boolean;
     isDrawingWalls: boolean;
@@ -75,12 +77,13 @@ export const useGridRenderer = ({
         ctx.fillStyle = color;
         ctx.fillRect(x, y, cellWidth, cellHeight);
 
-        ctx.strokeStyle = '#e5e7eb';
+        const border = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
+        ctx.strokeStyle = border ? `hsl(${border})` : '#e5e7eb';
         ctx.lineWidth = 1;
         ctx.strokeRect(x, y, cellWidth, cellHeight);
       }
     }
-  }, [step, width, height, canvasRef]);
+  }, [step, width, height, canvasRef, dark]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
