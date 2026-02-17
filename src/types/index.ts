@@ -59,3 +59,11 @@ export interface Algorithm {
 }
 
 export type AlgorithmMode = 'sorting' | 'pathfinding';
+
+export interface ComparisonState {
+  leftAlgorithm: string | null;
+  rightAlgorithm: string | null;
+  array: number[];
+  leftSteps: SortingStep[];
+  rightSteps: SortingStep[];
+}

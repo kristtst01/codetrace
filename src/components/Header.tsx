@@ -14,9 +14,11 @@ function getInitialDark(): boolean {
 interface HeaderProps {
   mode: AlgorithmMode;
   onModeChange: (mode: AlgorithmMode) => void;
+  comparisonMode?: boolean;
+  onComparisonModeChange?: (enabled: boolean) => void;
 }
 
-export const Header = ({ mode, onModeChange }: HeaderProps) => {
+export const Header = ({ mode, onModeChange, comparisonMode, onComparisonModeChange }: HeaderProps) => {
   const [dark, setDark] = useState(getInitialDark);
 
   useEffect(() => {
@@ -28,6 +30,18 @@ export const Header = ({ mode, onModeChange }: HeaderProps) => {
     <div className="flex justify-between items-center px-4 py-2">
       <h1 className="text-2xl font-bold tracking-tight">CodeTrace</h1>
       <div className="flex items-center gap-4">
+        {mode === 'sorting' && onComparisonModeChange && (
+          <button
+            onClick={() => onComparisonModeChange(!comparisonMode)}
+            className={`inline-flex items-center justify-center rounded-md border border-input p-2 hover:bg-accent hover:text-accent-foreground ${
+              comparisonMode ? 'bg-accent text-accent-foreground' : 'bg-background'
+            }`}
+            aria-label="Toggle comparison mode"
+            title="Compare two algorithms"
+          >
+            <span className="text-xs font-bold">VS</span>
+          </button>
+        )}
         <button
           onClick={() => setDark((d) => !d)}
           className="inline-flex items-center justify-center rounded-md border border-input bg-background p-2 hover:bg-accent hover:text-accent-foreground"
