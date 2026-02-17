@@ -1,9 +1,9 @@
 import { useRef } from 'react';
 import { useVisualizerRenderer } from '../../hooks/useVisualizerRenderer';
-import type { AlgorithmStep } from '../../types';
+import type { SortingStep } from '../../types';
 
 interface SortingVisualizerProps {
-  step: AlgorithmStep;
+  step: SortingStep;
   width?: number;
   height?: number;
 }

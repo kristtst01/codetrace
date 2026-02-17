@@ -1,60 +1,11 @@
-import type { Algorithm, AlgorithmStep, GridData, Cell } from '../types';
-
-function cellKey(cell: Cell): string {
-  return `${cell.row},${cell.col}`;
-}
-
-function getCost(from: Cell, to: Cell): number {
-  const isDiagonal = from.row !== to.row && from.col !== to.col;
-  return isDiagonal ? Math.SQRT2 : 1;
-}
+import type { Algorithm, PathfindingStep, GridData, Cell } from '../types';
+import { benchmarkAlgorithm, distributeExecutionTime } from '../utils/benchmark';
+import { cellKey, getCost, getNeighbors, reconstructPath } from '../utils/pathfindingUtils';
 
 function octileDistance(from: Cell, to: Cell): number {
   const dx = Math.abs(from.col - to.col);
   const dy = Math.abs(from.row - to.row);
   return dx + dy + (Math.SQRT2 - 2) * Math.min(dx, dy);
-}
-
-function getNeighbors(cell: Cell, grid: Cell[][]): Cell[] {
-  const { row, col } = cell;
-  const neighbors: Cell[] = [];
-  const directions = [
-    [-1, -1], [-1, 0], [-1, 1],
-    [0, -1],           [0, 1],
-    [1, -1],  [1, 0],  [1, 1],
-  ];
-
-  for (const [dr, dc] of directions) {
-    const newRow = row + dr;
-    const newCol = col + dc;
-
-    if (newRow >= 0 && newRow < grid.length &&
-        newCol >= 0 && newCol < grid[0].length) {
-      neighbors.push(grid[newRow][newCol]);
-    }
-  }
-
-  return neighbors;
-}
-
-function reconstructPath(
-  previous: Map<string, Cell>,
-  start: Cell,
-  end: Cell
-): [number, number][] {
-  const path: [number, number][] = [];
-  let current: Cell | undefined = end;
-
-  while (current && current !== start) {
-    path.unshift([current.row, current.col]);
-    current = previous.get(cellKey(current));
-  }
-
-  if (current === start) {
-    path.unshift([start.row, start.col]);
-  }
-
-  return path;
 }
 
 export const aStar: Algorithm = {
@@ -96,18 +47,50 @@ export const aStar: Algorithm = {
 
   return null;
 }`,
-  generate: (input: any): AlgorithmStep[] => {
+  generate: (input: number[] | GridData): PathfindingStep[] => {
     const gridData = input as GridData;
-    const steps: AlgorithmStep[] = [];
     const { cells, start: startPos, end: endPos } = gridData;
-
     const startCell = cells[startPos.row][startPos.col];
     const endCell = cells[endPos.row][endPos.col];
 
+    const avgExecutionTime = benchmarkAlgorithm(() => {
+      const openSet: Cell[] = [startCell];
+      const closedSet = new Set<string>();
+      const gScore = new Map<string, number>();
+      const fScore = new Map<string, number>();
+      const previous = new Map<string, Cell>();
+      gScore.set(cellKey(startCell), 0);
+      fScore.set(cellKey(startCell), octileDistance(startCell, endCell));
+      while (openSet.length > 0) {
+        let minF = Infinity, minI = 0;
+        for (let i = 0; i < openSet.length; i++) {
+          const s = fScore.get(cellKey(openSet[i])) || Infinity;
+          if (s < minF) { minF = s; minI = i; }
+        }
+        const cur = openSet[minI];
+        openSet.splice(minI, 1);
+        if (cellKey(cur) === cellKey(endCell)) break;
+        closedSet.add(cellKey(cur));
+        for (const nb of getNeighbors(cur, cells)) {
+          if (nb.type === 'wall' || closedSet.has(cellKey(nb))) continue;
+          const tg = (gScore.get(cellKey(cur)) || 0) + getCost(cur, nb);
+          if (tg < (gScore.get(cellKey(nb)) || Infinity)) {
+            previous.set(cellKey(nb), cur);
+            gScore.set(cellKey(nb), tg);
+            fScore.set(cellKey(nb), tg + octileDistance(nb, endCell));
+            if (!openSet.find(c => cellKey(c) === cellKey(nb))) openSet.push(nb);
+          }
+        }
+      }
+    });
+
+    const steps: PathfindingStep[] = [];
+
     steps.push({
-      array: [],
+      type: 'pathfinding',
       grid: gridData,
       message: 'Starting A* Algorithm',
+      stats: { nodesVisited: 0, pathLength: 0, executionTime: 0 },
     });
 
     const openSet: Cell[] = [startCell];
@@ -138,12 +121,14 @@ export const aStar: Algorithm = {
       if (cellKey(current) === cellKey(endCell)) {
         const finalPath = reconstructPath(previous, startCell, endCell);
         steps.push({
-          array: [],
+          type: 'pathfinding',
           grid: gridData,
           visited: visitedCells,
           path: finalPath,
           message: `Path found! Length: ${finalPath.length}`,
+          stats: { nodesVisited: visitedCells.length, pathLength: finalPath.length, executionTime: avgExecutionTime },
         });
+        distributeExecutionTime(steps, avgExecutionTime);
         break;
       }
 
@@ -176,21 +161,24 @@ export const aStar: Algorithm = {
       const currentH = octileDistance(current, endCell);
 
       steps.push({
-        array: [],
+        type: 'pathfinding',
         grid: gridData,
         visited: [...visitedCells],
         exploring: exploringCells,
         message: `Exploring (${current.row}, ${current.col}), g=${currentG.toFixed(2)}, h=${currentH.toFixed(2)}, f=${(currentG + currentH).toFixed(2)}`,
+        stats: { nodesVisited: visitedCells.length, pathLength: 0, executionTime: 0 },
       });
     }
 
     if (steps.length === 1 || !steps[steps.length - 1].path) {
       steps.push({
-        array: [],
+        type: 'pathfinding',
         grid: gridData,
         visited: visitedCells,
         message: 'No path found',
+        stats: { nodesVisited: visitedCells.length, pathLength: 0, executionTime: avgExecutionTime },
       });
+      distributeExecutionTime(steps, avgExecutionTime);
     }
 
     return steps;

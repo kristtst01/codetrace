@@ -1,4 +1,4 @@
-import { Slider } from '../ui/slider';
+import { LabeledSlider } from './LabeledSlider';
 
 interface ArraySizeControlProps {
   size: number;
@@ -7,19 +7,13 @@ interface ArraySizeControlProps {
 
 export const ArraySizeControl = ({ size, onSizeChange }: ArraySizeControlProps) => {
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center">
-        <label className="text-sm font-medium">Array Size</label>
-        <span className="text-sm text-muted-foreground">{size}</span>
-      </div>
-      <Slider
-        value={[size]}
-        onValueChange={([value]) => onSizeChange(value)}
-        min={5}
-        max={100}
-        step={5}
-        className="w-full"
-      />
-    </div>
+    <LabeledSlider
+      label="Array Size"
+      value={size}
+      onValueChange={onSizeChange}
+      min={5}
+      max={100}
+      step={5}
+    />
   );
 };

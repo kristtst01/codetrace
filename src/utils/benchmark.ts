@@ -6,6 +6,19 @@
  * @param timeBudgetMs - How long to run the benchmark (default 150ms)
  * @returns Average execution time per run in milliseconds
  */
+export function distributeExecutionTime(
+  steps: { stats?: { executionTime?: number } }[],
+  avgExecutionTime: number
+): void {
+  if (steps.length <= 1) return;
+  const timePerStep = avgExecutionTime / (steps.length - 1);
+  for (let i = 1; i < steps.length; i++) {
+    if (steps[i].stats) {
+      steps[i].stats!.executionTime = timePerStep * i;
+    }
+  }
+}
+
 export function benchmarkAlgorithm(
   algorithmFn: () => void,
   timeBudgetMs: number = 150

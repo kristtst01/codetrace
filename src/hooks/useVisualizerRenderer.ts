@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { getBarColor } from '../utils/colorUtils';
-import type { AlgorithmStep } from '../types';
+import type { SortingStep } from '../types';
 
 interface UseVisualizerRendererProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
-  step: AlgorithmStep;
+  step: SortingStep;
   width: number;
   height: number;
 }

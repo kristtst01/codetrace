@@ -1,7 +1,6 @@
 import { Header } from './components/Header';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { VisualizationArea } from './components/VisualizationArea';
-import { GridVisualizer } from './components/visualizers/GridVisualizer';
-import { AlgorithmInfoCard } from './components/AlgorithmInfoCard';
 import { StatisticsDisplay } from './components/StatisticsDisplay';
 import { Card, CardContent } from './components/ui/card';
 import { ModeSelector } from './components/controls/ModeSelector';
@@ -17,12 +16,16 @@ import { StepCounter } from './components/controls/StepCounter';
 import { useVisualizationControls } from './hooks/useVisualizationControls';
 import { getAlgorithm } from './algorithms';
 
+
 function App() {
   const controls = useVisualizationControls();
   const { mode, steps, currentStep, selectedAlgorithm, array, gridData } = controls;
 
-  const currentStepData = steps[currentStep] ||
-    (mode === 'sorting' ? { array } : { array: [], grid: gridData || undefined });
+  const currentStepData = steps[currentStep] ?? (
+    mode === 'sorting'
+      ? { type: 'sorting' as const, array }
+      : { type: 'pathfinding' as const, grid: gridData! }
+  );
   const algorithm = selectedAlgorithm ? getAlgorithm(selectedAlgorithm) : null;
 
   return (
@@ -32,19 +35,15 @@ function App() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
-            {mode === 'sorting' ? (
-              <VisualizationArea currentStepData={currentStepData} algorithm={algorithm} />
-            ) : (
-              <>
-                <GridVisualizer
-                  step={currentStepData}
-                  onCellClick={controls.setWall}
-                  onStartDrag={controls.setStart}
-                  onEndDrag={controls.setEnd}
-                />
-                {algorithm && <AlgorithmInfoCard algorithm={algorithm} />}
-              </>
-            )}
+            <ErrorBoundary>
+              <VisualizationArea
+                currentStepData={currentStepData}
+                algorithm={algorithm}
+                onCellClick={controls.setWall}
+                onStartDrag={controls.setStart}
+                onEndDrag={controls.setEnd}
+              />
+            </ErrorBoundary>
           </div>
 
           <Card>
@@ -93,7 +92,7 @@ function App() {
             </CardContent>
           </Card>
 
-          {selectedAlgorithm && <StatisticsDisplay step={currentStepData} mode={mode} />}
+          {selectedAlgorithm && <StatisticsDisplay step={currentStepData} />}
         </div>
       </div>
     </div>

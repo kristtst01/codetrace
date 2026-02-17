@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
-import type { AlgorithmStep } from '../types';
+import type { PathfindingStep } from '../types';
 import { getCellColor } from '../utils/colorUtils';
 
 interface UseGridRendererProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
-  step: AlgorithmStep;
+  step: PathfindingStep;
   width: number;
   height: number;
   onCellClick?: (row: number, col: number, isWall: boolean) => void;
@@ -39,7 +39,7 @@ export const useGridRenderer = ({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !step.grid) return;
+    if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -47,6 +47,15 @@ export const useGridRenderer = ({
     const { grid } = step;
     const cellWidth = width / grid.cols;
     const cellHeight = height / grid.rows;
+
+    const toSet = (arr?: [number, number][]): Set<string> => {
+      const s = new Set<string>();
+      if (arr) for (const [r, c] of arr) s.add(`${r},${c}`);
+      return s;
+    };
+    const visitedSet = toSet(step.visited);
+    const exploringSet = toSet(step.exploring);
+    const pathSet = toSet(step.path);
 
     ctx.clearRect(0, 0, width, height);
 
@@ -58,9 +67,9 @@ export const useGridRenderer = ({
 
         const color = getCellColor(
           cell,
-          step.visited,
-          step.exploring,
-          step.path
+          visitedSet,
+          exploringSet,
+          pathSet,
         );
 
         ctx.fillStyle = color;
@@ -75,7 +84,7 @@ export const useGridRenderer = ({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !step.grid) return;
+    if (!canvas) return;
 
     const { grid } = step;
     const cellWidth = width / grid.cols;

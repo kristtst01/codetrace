@@ -1,9 +1,9 @@
 import { useRef } from 'react';
-import type { AlgorithmStep } from '../../types';
+import type { PathfindingStep } from '../../types';
 import { useGridRenderer } from '../../hooks/useGridRenderer';
 
 interface GridVisualizerProps {
-  step: AlgorithmStep;
+  step: PathfindingStep;
   width?: number;
   height?: number;
   onCellClick?: (row: number, col: number, isWall: boolean) => void;
