@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import type { GridData, Cell, MazeType } from '../types';
 import { createGridData } from '../utils/gridUtils';
 import {
@@ -8,7 +8,7 @@ import {
 } from '../utils/mazeGeneration';
 
 export const useGridManagement = (initialRows: number = 25, initialCols: number = 50) => {
-  const [gridData, setGridData] = useState<GridData | null>(null);
+  const [gridData, setGridData] = useState<GridData | null>(() => createGridData(initialRows, initialCols));
   const [rows, setRows] = useState(initialRows);
   const [cols, setCols] = useState(initialCols);
 
@@ -113,10 +113,6 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
     setGridData(newGridData);
     return newGridData;
   }, [rows, cols]);
-
-  useEffect(() => {
-    generateEmptyGrid();
-  }, [generateEmptyGrid]);
 
   return {
     gridData,

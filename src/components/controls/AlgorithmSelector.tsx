@@ -20,7 +20,7 @@ export const AlgorithmSelector = ({
   mode,
 }: AlgorithmSelectorProps) => {
   const filteredAlgorithms = Object.entries(algorithms).filter(
-    ([_, algo]) => algo.category === mode
+    ([, algo]) => algo.category === mode
   );
 
   return (

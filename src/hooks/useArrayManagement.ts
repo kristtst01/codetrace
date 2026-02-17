@@ -7,22 +7,26 @@ export const useArrayManagement = (initialSize: number = 20) => {
   const [array, setArray] = useState<number[]>(() => createRandomArray(initialSize));
   const [size, setSize] = useState(initialSize);
   const sizeRef = useRef(size);
-  sizeRef.current = size;
+
+  const handleSetSize = useCallback((newSize: number) => {
+    sizeRef.current = newSize;
+    setSize(newSize);
+  }, []);
 
   const generateArray = useCallback((customSize?: number) => {
     const arraySize = customSize ?? sizeRef.current;
     const newArray = createRandomArray(arraySize);
     setArray(newArray);
     if (customSize !== undefined) {
-      setSize(customSize);
+      handleSetSize(customSize);
     }
     return newArray;
-  }, []);
+  }, [handleSetSize]);
 
   return {
     array,
     size,
-    setSize,
+    setSize: handleSetSize,
     generateArray,
   };
 };

@@ -9,7 +9,7 @@ interface ModeSelectorProps {
 export const ModeSelector = ({ mode, onModeChange }: ModeSelectorProps) => {
   return (
     <Select value={mode} onValueChange={onModeChange}>
-      <SelectTrigger className="w-52">
+      <SelectTrigger className="w-72">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
