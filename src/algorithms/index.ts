@@ -12,6 +12,7 @@ import { dijkstra } from './dijkstra';
 import { aStar } from './aStar';
 import { bfs } from './bfs';
 import { dfs } from './dfs';
+import { greedyBestFirst } from './greedyBestFirst';
 
 export const algorithms: Record<string, Algorithm> = {
   bubbleSort,
@@ -27,6 +28,7 @@ export const algorithms: Record<string, Algorithm> = {
   aStar,
   bfs,
   dfs,
+  greedyBestFirst,
 };
 
 export const getAlgorithm = (name: string): Algorithm | undefined => {

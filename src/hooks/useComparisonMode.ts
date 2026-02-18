@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useArrayManagement, type ArrayPreset } from './useArrayManagement';
 import { usePlaybackAnimation } from './usePlaybackAnimation';
 import { algorithms } from '../algorithms';
@@ -9,41 +9,40 @@ export const useComparisonMode = () => {
 
   const [leftAlgorithm, setLeftAlgorithm] = useState<string | null>(null);
   const [rightAlgorithm, setRightAlgorithm] = useState<string | null>(null);
-  const [leftSteps, setLeftSteps] = useState<SortingStep[]>([]);
-  const [rightSteps, setRightSteps] = useState<SortingStep[]>([]);
   const [speed, setSpeed] = useState(200);
   const [soundEnabled, setSoundEnabled] = useState(
     () => localStorage.getItem('codetrace-sound') === 'true'
   );
 
+  const { leftSteps, rightSteps } = useMemo(() => {
+    if (!leftAlgorithm || !rightAlgorithm) {
+      return { leftSteps: [] as SortingStep[], rightSteps: [] as SortingStep[] };
+    }
+    const leftAlgo = algorithms[leftAlgorithm];
+    const rightAlgo = algorithms[rightAlgorithm];
+    if (!leftAlgo || !rightAlgo) {
+      return { leftSteps: [] as SortingStep[], rightSteps: [] as SortingStep[] };
+    }
+    const snapshot = [...array];
+    return {
+      leftSteps: leftAlgo.generate(snapshot) as SortingStep[],
+      rightSteps: rightAlgo.generate(snapshot) as SortingStep[],
+    };
+  }, [leftAlgorithm, rightAlgorithm, array]);
+
   const totalSteps = Math.max(leftSteps.length, rightSteps.length);
 
   const playback = usePlaybackAnimation({ totalSteps, speed });
 
-  // Auto-generate steps when both algorithms are selected or array changes
-  const prevLeftRef = useRef(leftAlgorithm);
-  const prevRightRef = useRef(rightAlgorithm);
-  const prevArrayRef = useRef(array);
-
-  useEffect(() => {
-    const algoChanged = prevLeftRef.current !== leftAlgorithm || prevRightRef.current !== rightAlgorithm;
-    const arrayChanged = prevArrayRef.current !== array;
-    prevLeftRef.current = leftAlgorithm;
-    prevRightRef.current = rightAlgorithm;
-    prevArrayRef.current = array;
-
-    if (!leftAlgorithm || !rightAlgorithm) return;
-    if (!algoChanged && !arrayChanged) return;
-
-    const leftAlgo = algorithms[leftAlgorithm];
-    const rightAlgo = algorithms[rightAlgorithm];
-    if (!leftAlgo || !rightAlgo) return;
-
-    const snapshot = [...array];
-    setLeftSteps(leftAlgo.generate(snapshot) as SortingStep[]);
-    setRightSteps(rightAlgo.generate(snapshot) as SortingStep[]);
+  const handleSetLeftAlgorithm = useCallback((algo: string | null) => {
+    setLeftAlgorithm(algo);
     playback.reset();
-  }, [leftAlgorithm, rightAlgorithm, array, playback]);
+  }, [playback]);
+
+  const handleSetRightAlgorithm = useCallback((algo: string | null) => {
+    setRightAlgorithm(algo);
+    playback.reset();
+  }, [playback]);
 
   const sizeDebounceRef = useRef<number | null>(null);
   const handleSizeChange = useCallback((newSize: number) => {
@@ -63,15 +62,11 @@ export const useComparisonMode = () => {
 
   const handleGenerateArray = useCallback((preset?: ArrayPreset) => {
     generateArray(undefined, preset);
-    setLeftSteps([]);
-    setRightSteps([]);
     playback.reset();
   }, [generateArray, playback]);
 
   const handleSetCustomArray = useCallback((arr: number[]) => {
     setCustomArray(arr);
-    setLeftSteps([]);
-    setRightSteps([]);
     playback.reset();
   }, [setCustomArray, playback]);
 
@@ -86,8 +81,8 @@ export const useComparisonMode = () => {
   return {
     leftAlgorithm,
     rightAlgorithm,
-    setLeftAlgorithm,
-    setRightAlgorithm,
+    setLeftAlgorithm: handleSetLeftAlgorithm,
+    setRightAlgorithm: handleSetRightAlgorithm,
     array,
     size,
     setSize: handleSizeChange,
