@@ -1,9 +1,10 @@
-export type CellType = 'empty' | 'wall' | 'start' | 'end' | 'visited' | 'exploring' | 'path';
+export type CellType = 'empty' | 'wall' | 'weight' | 'start' | 'end' | 'visited' | 'exploring' | 'path';
 
 export interface Cell {
   row: number;
   col: number;
   type: CellType;
+  weight?: number;
   distance?: number;
   heuristic?: number;
 }

@@ -8,6 +8,8 @@ interface VisualizationAreaProps {
   algorithm: Algorithm | null | undefined;
   soundEnabled?: boolean;
   onCellClick?: (row: number, col: number, isWall: boolean) => void;
+  onWeightPlace?: (row: number, col: number, weight: number) => void;
+  selectedWeight?: number;
   onStartDrag?: (row: number, col: number) => void;
   onEndDrag?: (row: number, col: number) => void;
 }
@@ -17,6 +19,8 @@ export const VisualizationArea = ({
   algorithm,
   soundEnabled,
   onCellClick,
+  onWeightPlace,
+  selectedWeight,
   onStartDrag,
   onEndDrag,
 }: VisualizationAreaProps) => {
@@ -29,6 +33,8 @@ export const VisualizationArea = ({
           <GridVisualizer
             step={currentStepData}
             onCellClick={onCellClick}
+            onWeightPlace={onWeightPlace}
+            selectedWeight={selectedWeight}
             onStartDrag={onStartDrag}
             onEndDrag={onEndDrag}
           />

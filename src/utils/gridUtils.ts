@@ -10,6 +10,7 @@ export function createEmptyGrid(rows: number, cols: number): Cell[][] {
         row,
         col,
         type: 'empty',
+        weight: 1,
       };
     }
   }

@@ -21,6 +21,7 @@ export const getGridColors = () => {
   return {
     empty: getCssColor('--background', dark ? '#0a0a0a' : '#ffffff'),
     wall: dark ? '#6b7280' : '#1e293b',       // Gray-500 in dark, dark slate in light
+    weight: dark ? '#7c3aed' : '#a78bfa',     // Purple/indigo for weighted cells
     start: dark ? '#4ade80' : '#22c55e',       // Brighter green in dark
     end: dark ? '#f87171' : '#ef4444',         // Brighter red in dark
     visited: dark ? '#1e3a5f' : '#bfdbfe',     // Deep blue in dark, light blue in light
@@ -61,5 +62,6 @@ export const getCellColor = (
   if (exploringSet.has(key)) return colors.exploring;
   if (visitedSet.has(key)) return colors.visited;
 
-  return colors[cell.type];
+  if (cell.type === 'weight') return colors.weight;
+  return colors[cell.type as keyof typeof colors] ?? colors.empty;
 };

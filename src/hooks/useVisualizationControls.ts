@@ -9,6 +9,7 @@ import { usePlaybackAnimation } from './usePlaybackAnimation';
 export const useVisualizationControls = () => {
   const [mode, setMode] = useState<AlgorithmMode>('sorting');
   const [speed, setSpeed] = useState(500);
+  const [selectedWeight, setSelectedWeight] = useState(3);
 
   const arrayManagement = useArrayManagement();
   const gridManagement = useGridManagement();
@@ -141,8 +142,11 @@ export const useVisualizationControls = () => {
     setRows: handleRowsChange,
     setCols: handleColsChange,
     setWall: gridManagement.setWall,
+    setWeight: gridManagement.setWeight,
     setStart: gridManagement.setStart,
     setEnd: gridManagement.setEnd,
+    selectedWeight,
+    setSelectedWeight,
     handleAlgorithmChange,
     handleReset,
     handleGenerateArray,
