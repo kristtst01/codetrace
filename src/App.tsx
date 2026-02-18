@@ -98,18 +98,18 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activePlay, activePause, activeStepForward, activeStepBackward, activeReset, activeIsPlaying]);
 
-  // Turn off comparison mode when switching away from sorting
-  useEffect(() => {
-    if (mode !== 'sorting') {
+  const handleModeChange = useCallback((newMode: 'sorting' | 'pathfinding') => {
+    controls.setMode(newMode);
+    if (newMode !== 'sorting') {
       setComparisonMode(false);
     }
-  }, [mode]);
+  }, [controls]);
 
   return (
     <div className="h-screen overflow-hidden flex flex-col bg-background">
       <Header
         mode={mode}
-        onModeChange={controls.setMode}
+        onModeChange={handleModeChange}
         comparisonMode={comparisonMode}
         onComparisonModeChange={setComparisonMode}
       />
