@@ -45,7 +45,7 @@ export const AlgorithmInfoCard = ({ algorithm, currentMessage }: AlgorithmInfoCa
         )}
 
         {currentMessage && (
-          <div className="mt-4 p-3 bg-secondary rounded-md">
+          <div className="mt-4 p-3 bg-secondary rounded-md min-h-[5.75rem]">
             <p className="text-sm font-mono">{currentMessage}</p>
           </div>
         )}

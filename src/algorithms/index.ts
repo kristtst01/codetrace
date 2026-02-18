@@ -14,6 +14,7 @@ import { bfs } from './bfs';
 import { dfs } from './dfs';
 import { greedyBestFirst } from './greedyBestFirst';
 import { bidirectionalBfs } from './bidirectionalBfs';
+import { jumpPointSearch } from './jumpPointSearch';
 
 export const algorithms: Record<string, Algorithm> = {
   bubbleSort,
@@ -31,6 +32,7 @@ export const algorithms: Record<string, Algorithm> = {
   dfs,
   greedyBestFirst,
   bidirectionalBfs,
+  jumpPointSearch,
 };
 
 export const getAlgorithm = (name: string): Algorithm | undefined => {
