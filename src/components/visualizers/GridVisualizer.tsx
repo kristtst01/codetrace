@@ -6,6 +6,8 @@ import { useContainerSize } from '../../hooks/useContainerSize';
 interface GridVisualizerProps {
   step: PathfindingStep;
   onCellClick?: (row: number, col: number, isWall: boolean) => void;
+  onWeightPlace?: (row: number, col: number, weight: number) => void;
+  selectedWeight?: number;
   onStartDrag?: (row: number, col: number) => void;
   onEndDrag?: (row: number, col: number) => void;
 }
@@ -13,6 +15,8 @@ interface GridVisualizerProps {
 export const GridVisualizer = ({
   step,
   onCellClick,
+  onWeightPlace,
+  selectedWeight,
   onStartDrag,
   onEndDrag,
 }: GridVisualizerProps) => {
@@ -28,6 +32,8 @@ export const GridVisualizer = ({
     width: canvasWidth,
     height: canvasHeight,
     onCellClick,
+    onWeightPlace,
+    selectedWeight,
     onStartDrag,
     onEndDrag,
   });

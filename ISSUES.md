@@ -516,13 +516,254 @@ Comparing algorithms side-by-side on identical input is the best way to build in
 
 ## Phase 3 — Make Pathfinding Best-in-Class
 
-### - [ ] Add weighted terrain cells with different traversal costs
-### - [ ] Add Greedy Best-First Search
-### - [ ] Add Bidirectional BFS for pathfinding
-### - [ ] Add Jump Point Search (JPS) for grid pathfinding
-### - [ ] Add more maze generation algorithms (Eller's, Kruskal's, Wilson's, Aldous-Broder)
-### - [ ] Add fog-of-war mode that only reveals cells as the algorithm visits them
-### - [ ] Add maze-solving challenge mode with timer and scoring
+### - [ ] 15. Add weighted terrain cells with different traversal costs
+
+#### Branch
+`feat/weighted-terrain`
+
+#### Why
+Weighted terrain is essential for demonstrating why Dijkstra's and A* exist. Without weights, BFS finds the optimal path and there's no reason to use costlier algorithms. Weights let students see how different algorithms handle variable traversal costs.
+
+#### Files
+- `src/types/index.ts` — add `'weight'` to `CellType` union, add a `weight` field to `Cell`
+- `src/utils/colorUtils.ts` — add color mappings for weighted cells in `getGridColors` and handle weight in `getCellColor`
+- `src/utils/pathfindingUtils.ts` — update `getCost` to factor in `cell.weight` when traversing weighted cells
+- `src/utils/gridUtils.ts` — initialize `weight` to `1` in `createEmptyGrid`
+- `src/hooks/useGridManagement.ts` — add a `setWeight` function for placing weighted cells, update `clearWalls` to also clear weights
+- `src/hooks/useGridRenderer.ts` — render weight values as text labels on weighted cells, add right-click or modifier-click interaction for placing weights
+- `src/hooks/useVisualizationControls.ts` — expose `setWeight` through the controls return object
+- `src/components/controls/WeightControl.tsx` — new component: a weight value selector (e.g., slider or buttons for weight 2-9)
+- `src/App.tsx` — render `WeightControl` in the pathfinding sidebar, pass `setWeight` to `VisualizationArea`
+- `src/components/VisualizationArea.tsx` — accept and forward `onWeightPlace` prop to `GridVisualizer`
+- `src/components/visualizers/GridVisualizer.tsx` — accept and forward weight placement props to `useGridRenderer`
+
+#### Tasks
+1. [ ] In `src/types/index.ts`: add `'weight'` to the `CellType` union. Add an optional `weight?: number` field to the `Cell` interface (default `1`)
+2. [ ] In `src/utils/gridUtils.ts`: set `weight: 1` on every cell in `createEmptyGrid`
+3. [ ] In `src/utils/colorUtils.ts`: add a `weight` color to `getGridColors` (use a distinct color like purple/indigo — dark: `#7c3aed`, light: `#a78bfa`). Update `getCellColor` to return the weight color when `cell.type === 'weight'` (before the visited/exploring/path overrides still take priority)
+4. [ ] In `src/utils/pathfindingUtils.ts`: update `getCost` to multiply the base cost (1 or `Math.SQRT2`) by `to.weight ?? 1` when the target cell has a weight > 1
+5. [ ] In `src/hooks/useGridManagement.ts`: add a `setWeight(row, col, weight: number)` function that sets `cell.type = 'weight'` and `cell.weight = weight` (ignore if cell is `'start'` or `'end'`). Update `clearWalls` to also reset weighted cells to `'empty'` with `weight: 1`
+6. [ ] In `src/hooks/useGridRenderer.ts`: in the render loop, after drawing the cell fill, if `cell.type === 'weight'`, draw the weight number centered in the cell using `ctx.fillText`. For mouse interaction, add right-click (`contextmenu` event + `mousedown` with `e.button === 2`) to place weighted cells instead of walls. Use the currently selected weight value
+7. [ ] Create `src/components/controls/WeightControl.tsx`: a small control with buttons or a slider to select weight value (2-9). Display the current weight value. Include a brief label like "Right-click to place"
+8. [ ] Wire everything through `useVisualizationControls.ts`, `App.tsx`, `VisualizationArea.tsx`, and `GridVisualizer.tsx`: expose `setWeight` and `selectedWeight` state, pass them down the component tree to the grid renderer
+
+#### Acceptance Criteria
+- [ ] `pnpm build` passes
+- [ ] `pnpm lint` passes
+- [ ] Right-clicking (or modifier-clicking) a cell places a weighted cell with the selected weight value
+- [ ] Weighted cells render with a distinct color and display their weight number
+- [ ] Dijkstra's and A* produce different (longer) paths when weights are placed along the direct route
+- [ ] BFS ignores weights (finds shortest hop-count path, not lowest-cost path) — this is expected behavior, not a bug
+- [ ] `clearWalls` also clears weighted cells
+- [ ] [Visual] Weight numbers are readable at default grid size (25x50)
+- [ ] [Visual] Weighted cells are visually distinct from walls, visited, and exploring cells
+
+#### Constraints
+- Do NOT modify algorithm files — `getCost` in `pathfindingUtils.ts` is already called by Dijkstra and A*, so updating it there is sufficient
+- Do NOT add a new step type — weighted cells are part of the grid state, not the step state
+- Do NOT add weight support to maze generators — weights are manually placed only
+- Agent's discretion on the exact interaction pattern (right-click, shift+click, or a toggle mode)
+
+---
+
+### - [ ] 16. Add Greedy Best-First Search
+
+#### Branch
+`feat/greedy-best-first`
+
+#### Why
+Greedy Best-First Search is the natural counterpart to A* — it uses only the heuristic (no accumulated cost), making it fast but non-optimal. Comparing it with A* and Dijkstra teaches students exactly what the g-cost component buys you.
+
+#### Files
+- `src/algorithms/greedyBestFirst.ts` — new file implementing Greedy Best-First Search with step generation
+- `src/algorithms/index.ts` — import and register `greedyBestFirst` in the `algorithms` record
+
+#### Tasks
+1. [ ] Create `src/algorithms/greedyBestFirst.ts` following the exact same `Algorithm` pattern as `aStar.ts`. Export a `greedyBestFirst` object with `name: 'Greedy Best-First Search'`, `category: 'pathfinding'`, `timeComplexity: 'O(V + E)'`, `spaceComplexity: 'O(V)'`, a `code` string, and a `generate` function
+2. [ ] The `generate` function must: use `benchmarkAlgorithm` and `distributeExecutionTime` from `../utils/benchmark`, use `getNeighbors`, `cellKey`, and `reconstructPath` from `../utils/pathfindingUtils`. Implement a priority queue (array-based linear scan is fine, matching existing A*/Dijkstra pattern) ordered by heuristic value only — use the octile distance heuristic (same formula as in `aStar.ts`). Do NOT add accumulated g-cost to the priority
+3. [ ] Emit `PathfindingStep` objects with cumulative `visited` arrays, `exploring` arrays for current frontier, and descriptive `message` strings referencing the heuristic value (e.g., "Exploring (5, 12), h=7.24"). Track `nodesVisited` and `pathLength` in stats
+4. [ ] In `src/algorithms/index.ts`, import `greedyBestFirst` from `./greedyBestFirst` and add it to the `algorithms` record
+
+#### Acceptance Criteria
+- [ ] `pnpm build` passes
+- [ ] `pnpm lint` passes
+- [ ] "Greedy Best-First Search" appears in the algorithm selector dropdown when in pathfinding mode
+- [ ] The algorithm finds a path (not necessarily shortest) and the visualization plays correctly
+- [ ] On an open grid (no walls), the algorithm explores significantly fewer nodes than BFS or Dijkstra (it beelines toward the goal)
+- [ ] On a grid with walls forcing a detour, the algorithm may find a suboptimal path compared to A* — this is expected
+- [ ] Statistics (nodes visited, path length, execution time) update during playback
+
+#### Constraints
+- Do NOT modify any existing algorithm files
+- Do NOT modify types, hooks, or components — the algorithm registry pattern handles everything
+- Follow the exact same `Algorithm` interface and step generation pattern as `aStar.ts`
+- Reuse the octile distance formula from `aStar.ts` — copy it into the new file, do NOT extract it to a shared utility
+
+---
+
+### - [ ] 17. Add Bidirectional BFS for pathfinding
+
+#### Branch
+`feat/bidirectional-bfs`
+
+#### Why
+Bidirectional BFS explores from both start and end simultaneously, meeting in the middle. It demonstrates how search space reduction works — exploring roughly 2×(V/2) instead of V nodes. The visual of two frontiers colliding is one of the most satisfying pathfinding animations.
+
+#### Files
+- `src/algorithms/bidirectionalBfs.ts` — new file implementing Bidirectional BFS with step generation
+- `src/algorithms/index.ts` — import and register `bidirectionalBfs` in the `algorithms` record
+
+#### Tasks
+1. [ ] Create `src/algorithms/bidirectionalBfs.ts` following the same `Algorithm` pattern as `bfs.ts`. Export a `bidirectionalBfs` object with `name: 'Bidirectional BFS'`, `category: 'pathfinding'`, `timeComplexity: 'O(V + E)'`, `spaceComplexity: 'O(V)'`, a `code` string, and a `generate` function
+2. [ ] The `generate` function must maintain two BFS frontiers: one expanding from `start` and one expanding from `end`. Alternate expanding one level from each frontier per step. Detect intersection when a cell visited by one frontier is reached by the other. Use `getNeighbors`, `cellKey`, and `reconstructPath` from `../utils/pathfindingUtils`. Use `benchmarkAlgorithm` and `distributeExecutionTime`
+3. [ ] For path reconstruction: maintain two `previous` maps (one per direction). When frontiers meet at a cell, reconstruct the path from start to meeting point using the forward map, then from meeting point to end using the backward map, and concatenate them
+4. [ ] Emit `PathfindingStep` objects where `visited` contains cells from BOTH frontiers (combined), and `exploring` contains the current level's frontier cells. Use distinct `message` strings indicating which direction is expanding (e.g., "Forward BFS: exploring level 3", "Backward BFS: exploring from end"). Track `nodesVisited` and `pathLength` in stats
+5. [ ] In `src/algorithms/index.ts`, import `bidirectionalBfs` from `./bidirectionalBfs` and add it to the `algorithms` record
+
+#### Acceptance Criteria
+- [ ] `pnpm build` passes
+- [ ] `pnpm lint` passes
+- [ ] "Bidirectional BFS" appears in the pathfinding algorithm dropdown
+- [ ] The visualization shows two expanding frontiers meeting in the middle
+- [ ] The final path is correct (connects start to end through the meeting point)
+- [ ] On open grids, the algorithm visits fewer total nodes than standard BFS
+- [ ] Statistics update during playback
+- [ ] Messages alternate between forward and backward expansion
+
+#### Constraints
+- Do NOT modify any existing algorithm files
+- Do NOT modify types, hooks, or components — the algorithm registry handles everything
+- Follow the exact same `Algorithm` interface and step generation pattern as `bfs.ts`
+- The `visited` and `exploring` arrays in `PathfindingStep` must contain cells from both directions combined — do NOT add new fields to `PathfindingStep` for separate frontier tracking
+
+---
+
+### - [ ] 18. Add Jump Point Search (JPS) for grid pathfinding
+
+#### Branch
+`feat/jump-point-search`
+
+#### Why
+Jump Point Search is dramatically faster than A* on uniform-cost grids by pruning symmetric paths. It's one of the most impressive pathfinding optimizations to visualize — the algorithm "jumps" across open space, skipping redundant nodes. It teaches students that algorithmic cleverness can beat raw priority queue optimization.
+
+#### Files
+- `src/algorithms/jumpPointSearch.ts` — new file implementing JPS with step generation
+- `src/algorithms/index.ts` — import and register `jumpPointSearch` in the `algorithms` record
+
+#### Tasks
+1. [ ] Create `src/algorithms/jumpPointSearch.ts` following the same `Algorithm` pattern as `aStar.ts`. Export a `jumpPointSearch` object with `name: 'Jump Point Search'`, `category: 'pathfinding'`, `timeComplexity: 'O(V log V)'`, `spaceComplexity: 'O(V)'`, a `code` string, and a `generate` function
+2. [ ] Implement JPS with the following core functions inside the file:
+   - `jump(grid, current, direction, end)` — recursively scan in a direction until hitting a wall, the end cell, or finding a forced neighbor. Return the jump point or `null`
+   - `identifySuccessors(grid, current, end)` — determine which directions to explore based on the parent direction (prune symmetric paths), call `jump` for each, and return valid jump points
+   - Use the octile distance heuristic (same formula as `aStar.ts`) for f-score calculation
+3. [ ] The `generate` function must use `benchmarkAlgorithm` and `distributeExecutionTime`. Use `cellKey` from `../utils/pathfindingUtils`. Maintain an open set ordered by f-score (array-based linear scan is fine). Emit `PathfindingStep` objects where `visited` tracks all scanned cells (including cells jumped over), `exploring` highlights current jump points, and `message` describes jump activity (e.g., "Jumping east from (3, 5) to (3, 12)", "Found forced neighbor at (7, 9)")
+4. [ ] For path reconstruction, store the parent jump point for each discovered jump point. Reconstruct by walking from end back to start through jump points, then interpolate the straight-line segments between consecutive jump points to produce the full cell-by-cell path for the `path` array
+5. [ ] In `src/algorithms/index.ts`, import `jumpPointSearch` from `./jumpPointSearch` and add it to the `algorithms` record
+
+#### Acceptance Criteria
+- [ ] `pnpm build` passes
+- [ ] `pnpm lint` passes
+- [ ] "Jump Point Search" appears in the pathfinding algorithm dropdown
+- [ ] On an open grid (no walls), JPS visits dramatically fewer nodes than A* (the visualization should show sparse visited cells with long jumps)
+- [ ] On a maze, JPS still finds the optimal path (same length as A*)
+- [ ] The final `path` array contains all intermediate cells (not just jump points) so the path renders as a continuous line
+- [ ] Statistics update during playback
+- [ ] Messages reference jump directions and distances
+
+#### Constraints
+- Do NOT modify any existing algorithm files, types, or components
+- Follow the exact same `Algorithm` interface and step generation pattern as `aStar.ts`
+- JPS only works correctly on uniform-cost grids — if weighted terrain (issue #29) is implemented first, JPS should skip weighted cells (treat them like walls) or document that it assumes uniform cost. Agent's discretion on approach
+- Do NOT use diagonal movement pruning shortcuts that break correctness — prioritize a correct implementation over maximum pruning
+
+---
+
+### - [ ] 19. Add more maze generation algorithms (Eller's, Kruskal's, Wilson's, Aldous-Broder)
+
+#### Branch
+`feat/maze-generators`
+
+#### Why
+Different maze generation algorithms produce visually distinct mazes with different characteristics — long corridors vs. many short branches vs. uniform randomness. More generators give users more interesting inputs to test pathfinding algorithms against, and the visual variety makes the tool more engaging.
+
+#### Files
+- `src/types/index.ts` — extend the `MazeType` union with new maze types
+- `src/utils/mazeGeneration.ts` — add the four new maze generation functions
+- `src/hooks/useGridManagement.ts` — add cases for the new maze types in `generateMaze`
+- `src/components/controls/MazeControls.tsx` — add buttons for the new maze types
+
+#### Tasks
+1. [ ] In `src/types/index.ts`: extend `MazeType` to include `'ellers'`, `'kruskals'`, `'wilsons'`, and `'aldous-broder'`
+2. [ ] In `src/utils/mazeGeneration.ts`, add four new exported functions following the same pattern as `generateRandomizedPrims` (start all-walls, carve passages, return `GridData`):
+   - `generateEllers(rows, cols)` — Eller's algorithm: process row by row, randomly merge sets, carve downward connections. Produces mazes with a horizontal bias
+   - `generateKruskals(rows, cols)` — Randomized Kruskal's: list all walls, shuffle, remove walls that connect disjoint sets (use a Union-Find/disjoint-set structure). Produces very uniform, random-looking mazes
+   - `generateWilsons(rows, cols)` — Wilson's algorithm: loop-erased random walks. Pick an unvisited cell, random walk until hitting a visited cell, carve the path (erasing loops). Produces unbiased uniform spanning trees
+   - `generateAldousBroder(rows, cols)` — Aldous-Broder: random walk from any cell, carve passage when entering an unvisited cell. Simple but slow — cap iterations at `rows * cols * 10` to prevent infinite loops on large grids
+3. [ ] All four generators must call `setStartEnd(cells, rows, cols)` to place start/end positions. Eller's, Kruskal's, and Wilson's produce connected mazes by construction (no `ensureSolvable` needed). Aldous-Broder should call `ensureSolvable` as a safety net in case the iteration cap is hit
+4. [ ] In `src/hooks/useGridManagement.ts`: add cases for the four new types in the `generateMaze` function, dispatching to the corresponding generator
+5. [ ] In `src/components/controls/MazeControls.tsx`: add buttons for "Eller's", "Kruskal's", "Wilson's", and "Aldous-Broder". Consider reorganizing into a dropdown/select instead of individual buttons if 7 buttons don't fit well in the sidebar
+
+#### Acceptance Criteria
+- [ ] `pnpm build` passes
+- [ ] `pnpm lint` passes
+- [ ] All four new maze types appear as options in the maze controls
+- [ ] Each generator produces a valid, solvable maze (run each pathfinding algorithm against it)
+- [ ] Kruskal's mazes look visually different from Prim's mazes (more uniform randomness)
+- [ ] Wilson's mazes look visually different (unbiased spanning tree characteristics)
+- [ ] Eller's mazes have a noticeable horizontal corridor bias
+- [ ] No generator hangs or takes more than 1 second on the default 25×50 grid
+- [ ] [Visual] Maze controls still fit within the sidebar without breaking layout
+
+#### Constraints
+- Do NOT modify any existing maze generation functions — only add new ones
+- Do NOT modify pathfinding algorithm files
+- Do NOT modify the grid renderer or types beyond extending `MazeType`
+- Agent's discretion on whether to use buttons or a dropdown for the expanded maze list
+- Agent's discretion on Union-Find implementation for Kruskal's (inline class or closure-based)
+
+---
+
+### - [ ] 20. Add fog-of-war mode that only reveals cells as the algorithm visits them
+
+#### Branch
+`feat/fog-of-war`
+
+#### Why
+Fog-of-war forces the viewer to experience pathfinding the way the algorithm does — with no global knowledge of the grid. It dramatically increases engagement and builds intuition about why algorithms like DFS get lost while BFS methodically expands.
+
+#### Files
+- `src/hooks/useGridRenderer.ts` — add fog-of-war rendering logic that dims or hides unvisited cells
+- `src/utils/colorUtils.ts` — add a `fog` color to `getGridColors`
+- `src/components/controls/FogOfWarToggle.tsx` — new component: a toggle button for enabling/disabling fog-of-war
+- `src/hooks/useVisualizationControls.ts` — add `fogOfWar` boolean state and expose it
+- `src/App.tsx` — render `FogOfWarToggle` in the pathfinding sidebar, pass fog state to `VisualizationArea`
+- `src/components/VisualizationArea.tsx` — accept and forward `fogOfWar` prop to `GridVisualizer`
+- `src/components/visualizers/GridVisualizer.tsx` — accept and forward `fogOfWar` prop to `useGridRenderer`
+
+#### Tasks
+1. [ ] In `src/utils/colorUtils.ts`: add a `fog` color to `getGridColors` — a dark semi-opaque color (dark mode: `#111827`, light mode: `#d1d5db`) that obscures cell contents
+2. [ ] In `src/hooks/useGridRenderer.ts`: accept a new optional `fogOfWar?: boolean` prop. When enabled, modify the render loop: for cells that are NOT in the `visitedSet`, `exploringSet`, or `pathSet`, and are not `'start'` or `'end'`, render the fog color instead of the actual cell color. This hides walls and empty space alike until the algorithm reveals them. The start and end cells are always visible
+3. [ ] Create `src/components/controls/FogOfWarToggle.tsx`: a toggle button using an `Eye`/`EyeOff` icon from `lucide-react`. Manages fog state via a prop callback. Persist preference to `localStorage` under key `codetrace-fog`
+4. [ ] In `src/hooks/useVisualizationControls.ts`: add a `fogOfWar` boolean state (default `false`). Expose it and a `setFogOfWar` toggle in the return object
+5. [ ] Wire through `App.tsx` → `VisualizationArea.tsx` → `GridVisualizer.tsx` → `useGridRenderer`: pass `fogOfWar` boolean down the prop chain. Only render `FogOfWarToggle` in pathfinding mode
+
+#### Acceptance Criteria
+- [ ] `pnpm build` passes
+- [ ] `pnpm lint` passes
+- [ ] When fog-of-war is enabled, only the start cell, end cell, visited cells, exploring cells, and path cells are visible — everything else is covered by fog
+- [ ] Walls are hidden until the algorithm explores adjacent cells (they appear as the algorithm encounters them)
+- [ ] Toggling fog off reveals the full grid immediately
+- [ ] Fog preference persists across page reloads
+- [ ] Fog toggle only appears in pathfinding mode
+- [ ] [Visual] The fog color is visually distinct from walls and empty cells
+- [ ] [Visual] Stepping backward re-hides cells that were previously revealed (fog tracks the current step, not a high-water mark)
+
+#### Constraints
+- Do NOT modify algorithm files — fog is purely a rendering concern
+- Do NOT add fog-of-war to sorting mode
+- Do NOT change the `PathfindingStep` type — fog uses the existing `visited`/`exploring`/`path` arrays to determine visibility
+- Do NOT reveal walls in a radius around visited cells — only reveal the exact cells the algorithm has touched (visited + exploring + path)
+- Keep the toggle simple — no opacity slider or partial fog effects
 
 ---
 
@@ -541,6 +782,58 @@ Comparing algorithms side-by-side on identical input is the best way to build in
 ---
 
 ## Phase 5 — Educational & Interactive Features
+
+### - [ ] 21. Add maze-solving challenge mode with timer and scoring
+
+#### Branch
+`feat/maze-challenge`
+
+#### Why
+A challenge mode transforms the tool from a passive visualizer into an interactive learning game. Users try to predict which algorithm will find the shortest path or visit the fewest nodes, then verify by running the algorithm. This active engagement dramatically improves retention of algorithm concepts.
+
+#### Files
+- `src/types/index.ts` — add a `ChallengeState` interface
+- `src/hooks/useChallengeMode.ts` — new hook managing challenge state, timer, scoring, and round progression
+- `src/components/ChallengePanel.tsx` — new component rendering the challenge UI (question, timer, score, feedback)
+- `src/components/controls/ChallengeControls.tsx` — new component with start/next/end buttons
+- `src/App.tsx` — add challenge mode toggle and conditionally render `ChallengePanel`
+- `src/components/Header.tsx` — add a challenge mode toggle button (only visible in pathfinding mode)
+
+#### Tasks
+1. [ ] In `src/types/index.ts`: add a `ChallengeState` interface with fields: `isActive: boolean`, `currentRound: number`, `totalRounds: number`, `score: number`, `question: ChallengeQuestion`, `timeRemaining: number`, `feedback: string | null`. Add a `ChallengeQuestion` interface: `{ type: 'shortest-path' | 'fewest-nodes' | 'will-find-path', maze: GridData, options: string[], correctAnswer: string }`
+2. [ ] Create `src/hooks/useChallengeMode.ts`:
+   - Generate challenge rounds: for each round, generate a random maze (using existing maze generators), then run 2-4 pathfinding algorithms on it to compute ground-truth answers
+   - Question types: "Which algorithm finds the shortest path?" (answer: all optimal ones, or note BFS on weighted), "Which algorithm visits the fewest nodes?" (compare nodesVisited stats), "Will DFS find the shortest path on this maze?" (yes/no)
+   - Timer: 30 seconds per round, countdown using `setInterval`, auto-submit when time expires
+   - Scoring: +100 for correct answer, +50 bonus if answered in under 10 seconds, 0 for wrong/timeout
+   - Expose: `startChallenge`, `submitAnswer`, `nextRound`, `endChallenge`, and the full `ChallengeState`
+3. [ ] Create `src/components/ChallengePanel.tsx`: renders the current question, a list of answer buttons (algorithm names), a countdown timer display, the current score, and feedback after each answer ("Correct! A* visited 47 nodes while BFS visited 312"). After the last round, show a summary with total score
+4. [ ] Create `src/components/controls/ChallengeControls.tsx`: a "Start Challenge" button that begins a 5-round challenge. During a challenge, show "Next Round" (after answering) and "End Challenge" buttons
+5. [ ] In `src/App.tsx`: add `challengeMode` state. When active in pathfinding mode, render `ChallengePanel` above the grid visualizer and `ChallengeControls` in the sidebar. The grid visualizer should show the challenge maze. After the user answers, auto-run the correct algorithm to show the answer visually
+6. [ ] In `src/components/Header.tsx`: add a trophy/gamepad icon button next to the mode selector (only visible in pathfinding mode) that toggles challenge mode
+
+#### Acceptance Criteria
+- [ ] `pnpm build` passes
+- [ ] `pnpm lint` passes
+- [ ] Clicking "Start Challenge" begins a 5-round challenge with a random maze each round
+- [ ] Each round displays a question about algorithm behavior on the shown maze
+- [ ] The timer counts down from 30 seconds and auto-submits on expiry
+- [ ] Correct answers award points, with a speed bonus for fast answers
+- [ ] After answering, the correct algorithm runs on the maze so the user can see the answer
+- [ ] After 5 rounds, a score summary is shown
+- [ ] Challenge mode button only appears in pathfinding mode
+- [ ] [Visual] The challenge panel doesn't obscure the grid visualization
+- [ ] Ending a challenge early returns to normal pathfinding mode
+
+#### Constraints
+- Do NOT modify algorithm files — run them via the existing `Algorithm.generate` function to compute ground-truth answers
+- Do NOT modify the grid renderer — the challenge maze is just a regular `GridData` rendered normally
+- Do NOT add multiplayer or leaderboard features
+- Do NOT persist scores beyond the current session (no localStorage for scores)
+- Reuse existing maze generation functions and algorithm execution — do NOT duplicate logic
+- Agent's discretion on exact question phrasing and number of answer options per question
+
+---
 
 ### - [ ] Show real-time code highlighting synced with the current algorithm step
 ### - [ ] Visualize auxiliary space usage (e.g., merge sort temp arrays shown separately)

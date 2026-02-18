@@ -12,7 +12,8 @@ export function cellKey(cell: Cell): string {
 
 export function getCost(from: Cell, to: Cell): number {
   const isDiagonal = from.row !== to.row && from.col !== to.col;
-  return isDiagonal ? Math.SQRT2 : 1;
+  const baseCost = isDiagonal ? Math.SQRT2 : 1;
+  return baseCost * (to.weight ?? 1);
 }
 
 export function getNeighbors(cell: Cell, grid: Cell[][]): Cell[] {

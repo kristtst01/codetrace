@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { GridData, Cell, MazeType } from '../types';
 import { createGridData } from '../utils/gridUtils';
 import {
@@ -11,6 +11,11 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
   const [gridData, setGridData] = useState<GridData | null>(() => createGridData(initialRows, initialCols));
   const [rows, setRows] = useState(initialRows);
   const [cols, setCols] = useState(initialCols);
+
+  // Regenerate grid when dimensions change
+  useEffect(() => {
+    setGridData(createGridData(rows, cols));
+  }, [rows, cols]);
 
   const generateEmptyGrid = useCallback(() => {
     const newGridData = createGridData(rows, cols);
@@ -83,13 +88,31 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
     });
   }, [gridData]);
 
+  const setWeight = useCallback((row: number, col: number, weight: number) => {
+    if (!gridData) return;
+
+    const cell = gridData.cells[row][col];
+    if (cell.type === 'start' || cell.type === 'end') return;
+
+    const newCells = [...gridData.cells];
+    newCells[row] = newCells[row].map((c) => ({ ...c }));
+    newCells[row][col].type = 'weight';
+    newCells[row][col].weight = weight;
+
+    setGridData({
+      ...gridData,
+      cells: newCells,
+    });
+  }, [gridData]);
+
   const clearWalls = useCallback((): GridData | null => {
     if (!gridData) return null;
 
     const newCells = gridData.cells.map((rowArray) =>
       rowArray.map((c) => ({
         ...c,
-        type: c.type === 'wall' ? 'empty' : c.type,
+        type: (c.type === 'wall' || c.type === 'weight') ? 'empty' : c.type,
+        weight: (c.type === 'wall' || c.type === 'weight') ? 1 : c.weight,
       } as Cell))
     );
 
@@ -124,6 +147,7 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
     generateEmptyGrid,
     generateMaze,
     setWall,
+    setWeight,
     setStart,
     setEnd,
     clearWalls,

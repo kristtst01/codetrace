@@ -11,6 +11,7 @@ import { ArrayInput } from './components/controls/ArrayInput';
 import { GridSizeControl } from './components/controls/GridSizeControl';
 import { MazeControls } from './components/controls/MazeControls';
 import { ClearGridButton } from './components/controls/ClearGridButton';
+import { WeightControl } from './components/controls/WeightControl';
 import { PlaybackControls } from './components/controls/PlaybackControls';
 import { SpeedControl } from './components/controls/SpeedControl';
 import { StepCounter } from './components/controls/StepCounter';
@@ -87,6 +88,8 @@ function App() {
               algorithm={algorithm}
               soundEnabled={mode === 'sorting' && soundEnabled}
               onCellClick={controls.setWall}
+              onWeightPlace={controls.setWeight}
+              selectedWeight={controls.selectedWeight}
               onStartDrag={controls.setStart}
               onEndDrag={controls.setEnd}
             />
@@ -117,6 +120,10 @@ function App() {
                     onColsChange={controls.setCols}
                   />
                   <MazeControls onGenerateMaze={controls.handleGenerateMaze} />
+                  <WeightControl
+                    selectedWeight={controls.selectedWeight}
+                    onWeightChange={controls.setSelectedWeight}
+                  />
                   <ClearGridButton onClear={controls.handleClearWalls} />
                 </>
               )}

@@ -9,6 +9,8 @@ interface UseGridRendererProps {
   width: number;
   height: number;
   onCellClick?: (row: number, col: number, isWall: boolean) => void;
+  onWeightPlace?: (row: number, col: number, weight: number) => void;
+  selectedWeight?: number;
   onStartDrag?: (row: number, col: number) => void;
   onEndDrag?: (row: number, col: number) => void;
 }
@@ -19,6 +21,8 @@ export const useGridRenderer = ({
   width,
   height,
   onCellClick,
+  onWeightPlace,
+  selectedWeight = 3,
   onStartDrag,
   onEndDrag,
 }: UseGridRendererProps) => {
@@ -26,6 +30,7 @@ export const useGridRenderer = ({
   const dragStateRef = useRef<{
     isDragging: boolean;
     isDrawingWalls: boolean;
+    isDrawingWeights: boolean;
     dragType: 'start' | 'end' | null;
     drawMode: 'add' | 'remove' | null;
     lastRow: number | null;
@@ -33,6 +38,7 @@ export const useGridRenderer = ({
   }>({
     isDragging: false,
     isDrawingWalls: false,
+    isDrawingWeights: false,
     dragType: null,
     drawMode: null,
     lastRow: null,
@@ -77,6 +83,15 @@ export const useGridRenderer = ({
         ctx.fillStyle = color;
         ctx.fillRect(x, y, cellWidth, cellHeight);
 
+        if (cell.type === 'weight' && cell.weight && cell.weight > 1) {
+          const fontSize = Math.max(8, Math.min(cellWidth, cellHeight) * 0.55);
+          ctx.font = `bold ${fontSize}px sans-serif`;
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(cell.weight), x + cellWidth / 2, y + cellHeight / 2);
+        }
+
         const border = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
         ctx.strokeStyle = border ? `hsl(${border})` : '#e5e7eb';
         ctx.lineWidth = 1;
@@ -110,10 +125,25 @@ export const useGridRenderer = ({
 
     const handleMouseDown = (e: MouseEvent) => {
       const { row, col } = getCellFromMouse(e);
-
       if (row < 0 || row >= grid.rows || col < 0 || col >= grid.cols) return;
 
       const cell = grid.cells[row][col];
+
+      if (e.button === 2) {
+        // Right-click: draw/erase weights
+        if (cell.type === 'start' || cell.type === 'end') return;
+        const isCurrentlyWeight = cell.type === 'weight';
+        dragStateRef.current.isDrawingWeights = true;
+        dragStateRef.current.drawMode = isCurrentlyWeight ? 'remove' : 'add';
+        dragStateRef.current.lastRow = row;
+        dragStateRef.current.lastCol = col;
+        if (isCurrentlyWeight) {
+          onCellClick?.(row, col, false);
+        } else {
+          onWeightPlace?.(row, col, selectedWeight);
+        }
+        return;
+      }
 
       if (cell.type === 'start') {
         dragStateRef.current.isDragging = true;
@@ -143,6 +173,18 @@ export const useGridRenderer = ({
         } else if (dragStateRef.current.dragType === 'end') {
           onEndDrag?.(row, col);
         }
+      } else if (dragStateRef.current.isDrawingWeights) {
+        if (row !== dragStateRef.current.lastRow || col !== dragStateRef.current.lastCol) {
+          dragStateRef.current.lastRow = row;
+          dragStateRef.current.lastCol = col;
+          const cell = grid.cells[row][col];
+          if (cell.type === 'start' || cell.type === 'end') return;
+          if (dragStateRef.current.drawMode === 'add') {
+            onWeightPlace?.(row, col, selectedWeight);
+          } else {
+            onCellClick?.(row, col, false);
+          }
+        }
       } else if (dragStateRef.current.isDrawingWalls) {
         // Only modify wall if we moved to a different cell
         if (row !== dragStateRef.current.lastRow || col !== dragStateRef.current.lastCol) {
@@ -158,22 +200,29 @@ export const useGridRenderer = ({
     const handleMouseUp = () => {
       dragStateRef.current.isDragging = false;
       dragStateRef.current.isDrawingWalls = false;
+      dragStateRef.current.isDrawingWeights = false;
       dragStateRef.current.dragType = null;
       dragStateRef.current.drawMode = null;
       dragStateRef.current.lastRow = null;
       dragStateRef.current.lastCol = null;
     };
 
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
     canvas.addEventListener('mousedown', handleMouseDown);
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseup', handleMouseUp);
     canvas.addEventListener('mouseleave', handleMouseUp);
+    canvas.addEventListener('contextmenu', handleContextMenu);
 
     return () => {
       canvas.removeEventListener('mousedown', handleMouseDown);
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseup', handleMouseUp);
       canvas.removeEventListener('mouseleave', handleMouseUp);
+      canvas.removeEventListener('contextmenu', handleContextMenu);
     };
-  }, [step, width, height, canvasRef, onCellClick, onStartDrag, onEndDrag]);
+  }, [step, width, height, canvasRef, onCellClick, onWeightPlace, selectedWeight, onStartDrag, onEndDrag]);
 };
