@@ -13,6 +13,7 @@ import { GridSizeControl } from './components/controls/GridSizeControl';
 import { MazeControls } from './components/controls/MazeControls';
 import { ClearGridButton } from './components/controls/ClearGridButton';
 import { WeightControl } from './components/controls/WeightControl';
+import { FogOfWarToggle } from './components/controls/FogOfWarToggle';
 import { PlaybackControls } from './components/controls/PlaybackControls';
 import { SpeedControl } from './components/controls/SpeedControl';
 import { StepCounter } from './components/controls/StepCounter';
@@ -136,6 +137,7 @@ function App() {
               selectedWeight={controls.selectedWeight}
               onStartDrag={controls.setStart}
               onEndDrag={controls.setEnd}
+              fogOfWar={controls.fogOfWar}
             />
           )}
         </div>
@@ -200,6 +202,7 @@ function App() {
                         selectedWeight={controls.selectedWeight}
                         onWeightChange={controls.setSelectedWeight}
                       />
+                      <FogOfWarToggle fogOfWar={controls.fogOfWar} onToggle={controls.toggleFogOfWar} />
                       <ClearGridButton onClear={controls.handleClearWalls} />
                     </>
                   )}

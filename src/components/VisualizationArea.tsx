@@ -12,6 +12,7 @@ interface VisualizationAreaProps {
   selectedWeight?: number;
   onStartDrag?: (row: number, col: number) => void;
   onEndDrag?: (row: number, col: number) => void;
+  fogOfWar?: boolean;
 }
 
 export const VisualizationArea = ({
@@ -23,6 +24,7 @@ export const VisualizationArea = ({
   selectedWeight,
   onStartDrag,
   onEndDrag,
+  fogOfWar,
 }: VisualizationAreaProps) => {
   return (
     <div className="flex flex-col h-full gap-4">
@@ -37,6 +39,7 @@ export const VisualizationArea = ({
             selectedWeight={selectedWeight}
             onStartDrag={onStartDrag}
             onEndDrag={onEndDrag}
+            fogOfWar={fogOfWar}
           />
         )}
       </div>

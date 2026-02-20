@@ -10,6 +10,7 @@ interface GridVisualizerProps {
   selectedWeight?: number;
   onStartDrag?: (row: number, col: number) => void;
   onEndDrag?: (row: number, col: number) => void;
+  fogOfWar?: boolean;
 }
 
 export const GridVisualizer = ({
@@ -19,6 +20,7 @@ export const GridVisualizer = ({
   selectedWeight,
   onStartDrag,
   onEndDrag,
+  fogOfWar,
 }: GridVisualizerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -36,6 +38,7 @@ export const GridVisualizer = ({
     selectedWeight,
     onStartDrag,
     onEndDrag,
+    fogOfWar,
   });
 
   return (

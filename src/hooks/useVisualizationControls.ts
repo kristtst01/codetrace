@@ -10,6 +10,17 @@ export const useVisualizationControls = () => {
   const [mode, setMode] = useState<AlgorithmMode>('sorting');
   const [speed, setSpeed] = useState(500);
   const [selectedWeight, setSelectedWeight] = useState(3);
+  const [fogOfWar, setFogOfWar] = useState(
+    () => localStorage.getItem('codetrace-fog') === 'true'
+  );
+
+  const toggleFogOfWar = useCallback(() => {
+    setFogOfWar((prev) => {
+      const next = !prev;
+      localStorage.setItem('codetrace-fog', String(next));
+      return next;
+    });
+  }, []);
 
   const arrayManagement = useArrayManagement();
   const gridManagement = useGridManagement();
@@ -153,5 +164,7 @@ export const useVisualizationControls = () => {
     handleSetCustomArray,
     handleGenerateMaze,
     handleClearWalls,
+    fogOfWar,
+    toggleFogOfWar,
   };
 };
