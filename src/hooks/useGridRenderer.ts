@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { PathfindingStep } from '../types';
-import { getCellColor } from '../utils/colorUtils';
+import { getCellColor, getGridColors } from '../utils/colorUtils';
 import { useTheme } from './useTheme';
 
 interface UseGridRendererProps {
@@ -13,6 +13,7 @@ interface UseGridRendererProps {
   selectedWeight?: number;
   onStartDrag?: (row: number, col: number) => void;
   onEndDrag?: (row: number, col: number) => void;
+  fogOfWar?: boolean;
 }
 
 export const useGridRenderer = ({
@@ -25,6 +26,7 @@ export const useGridRenderer = ({
   selectedWeight = 3,
   onStartDrag,
   onEndDrag,
+  fogOfWar = false,
 }: UseGridRendererProps) => {
   const dark = useTheme();
   const dragStateRef = useRef<{
@@ -67,23 +69,51 @@ export const useGridRenderer = ({
 
     ctx.clearRect(0, 0, width, height);
 
+    const fogColor = fogOfWar ? getGridColors().fog : null;
+
+    // Pre-compute revealed set: every cell within a 3x3 neighborhood of a touched cell
+    let revealedSet: Set<string> | null = null;
+    if (fogColor) {
+      revealedSet = new Set<string>();
+      const addNeighborhood = (r: number, c: number) => {
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            const nr = r + dr;
+            const nc = c + dc;
+            if (nr >= 0 && nr < grid.rows && nc >= 0 && nc < grid.cols) {
+              revealedSet!.add(`${nr},${nc}`);
+            }
+          }
+        }
+      };
+      // Reveal around start cell
+      addNeighborhood(grid.start.row, grid.start.col);
+      // Reveal around all visited/exploring/path cells
+      if (step.visited) for (const [r, c] of step.visited) addNeighborhood(r, c);
+      if (step.exploring) for (const [r, c] of step.exploring) addNeighborhood(r, c);
+      if (step.path) for (const [r, c] of step.path) addNeighborhood(r, c);
+    }
+
     for (let row = 0; row < grid.rows; row++) {
       for (let col = 0; col < grid.cols; col++) {
         const cell = grid.cells[row][col];
         const x = col * cellWidth;
         const y = row * cellHeight;
+        const key = `${row},${col}`;
 
-        const color = getCellColor(
-          cell,
-          visitedSet,
-          exploringSet,
-          pathSet,
-        );
+        const isRevealed = !revealedSet || revealedSet.has(key);
+
+        let color: string;
+        if (fogColor && !isRevealed) {
+          color = fogColor;
+        } else {
+          color = getCellColor(cell, visitedSet, exploringSet, pathSet);
+        }
 
         ctx.fillStyle = color;
         ctx.fillRect(x, y, cellWidth, cellHeight);
 
-        if (cell.type === 'weight' && cell.weight && cell.weight > 1) {
+        if ((!fogColor || isRevealed) && cell.type === 'weight' && cell.weight && cell.weight > 1) {
           const fontSize = Math.max(8, Math.min(cellWidth, cellHeight) * 0.55);
           ctx.font = `bold ${fontSize}px sans-serif`;
           ctx.fillStyle = '#ffffff';
@@ -98,7 +128,7 @@ export const useGridRenderer = ({
         ctx.strokeRect(x, y, cellWidth, cellHeight);
       }
     }
-  }, [step, width, height, canvasRef, dark]);
+  }, [step, width, height, canvasRef, dark, fogOfWar]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

@@ -27,6 +27,7 @@ export const getGridColors = () => {
     visited: dark ? '#1e3a5f' : '#bfdbfe',     // Deep blue in dark, light blue in light
     exploring: dark ? '#ca8a04' : '#fbbf24',   // Darker yellow in dark to avoid glare
     path: dark ? '#60a5fa' : '#3b82f6',        // Brighter blue in dark
+    fog: dark ? '#111827' : '#d1d5db',          // Dark in dark mode, gray in light
   };
 };
 
