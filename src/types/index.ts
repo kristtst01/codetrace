@@ -17,7 +17,7 @@ export interface GridData {
   end: { row: number; col: number };
 }
 
-export type MazeType = 'recursive-division' | 'randomized-prims' | 'random-walls';
+export type MazeType = 'recursive-division' | 'randomized-prims' | 'random-walls' | 'ellers' | 'kruskals' | 'wilsons' | 'aldous-broder';
 
 export interface AlgorithmStats {
   comparisons?: number;

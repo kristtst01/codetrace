@@ -5,6 +5,10 @@ import {
   generateRecursiveDivision,
   generateRandomizedPrims,
   generateRandomWalls,
+  generateEllers,
+  generateKruskals,
+  generateWilsons,
+  generateAldousBroder,
 } from '../utils/mazeGeneration';
 
 export const useGridManagement = (initialRows: number = 25, initialCols: number = 50) => {
@@ -126,12 +130,28 @@ export const useGridManagement = (initialRows: number = 25, initialCols: number 
 
   const generateMaze = useCallback((type: MazeType): GridData => {
     let newGridData;
-    if (type === 'recursive-division') {
-      newGridData = generateRecursiveDivision(rows, cols);
-    } else if (type === 'randomized-prims') {
-      newGridData = generateRandomizedPrims(rows, cols);
-    } else {
-      newGridData = generateRandomWalls(rows, cols, 0.3);
+    switch (type) {
+      case 'recursive-division':
+        newGridData = generateRecursiveDivision(rows, cols);
+        break;
+      case 'randomized-prims':
+        newGridData = generateRandomizedPrims(rows, cols);
+        break;
+      case 'ellers':
+        newGridData = generateEllers(rows, cols);
+        break;
+      case 'kruskals':
+        newGridData = generateKruskals(rows, cols);
+        break;
+      case 'wilsons':
+        newGridData = generateWilsons(rows, cols);
+        break;
+      case 'aldous-broder':
+        newGridData = generateAldousBroder(rows, cols);
+        break;
+      default:
+        newGridData = generateRandomWalls(rows, cols, 0.3);
+        break;
     }
     setGridData(newGridData);
     return newGridData;
